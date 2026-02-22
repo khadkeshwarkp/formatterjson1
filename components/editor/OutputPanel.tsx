@@ -1,23 +1,45 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useWorkspaceStore } from '@/lib/store';
 import { copyToClipboard, downloadText } from '@/lib/utils';
+import { getOutputPlaceholder } from '@/lib/input-placeholders';
 
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
+
+function OutputPlaceholderText({ text }: { text: string }) {
+  const parts = text.split(/\*\*(.+?)\*\*/g);
+  return (
+    <>
+      {parts.map((p, i) =>
+        i % 2 === 1 ? (
+          <strong key={i} className="font-semibold text-dt-accent">
+            {p}
+          </strong>
+        ) : (
+          <span key={i}>{p}</span>
+        )
+      )}
+    </>
+  );
+}
 
 interface OutputPanelProps {
   toolId: string;
   error?: string | null;
   outputLanguage?: string;
+  /** When true, show a hint that input is optional (output-only layout). */
+  showOutputOnlyHint?: boolean;
 }
 
-export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: OutputPanelProps) {
+export default function OutputPanel({ toolId, error, outputLanguage = 'json', showOutputOnlyHint = false }: OutputPanelProps) {
   const output = useWorkspaceStore((s) => s.toolData[toolId]?.output ?? '');
   const setOutput = useWorkspaceStore((s) => s.setOutput);
   const addToast = useWorkspaceStore((s) => s.addToast);
   const theme = useWorkspaceStore((s) => s.theme);
+  const setPanelFullscreen = useWorkspaceStore((s) => s.setPanelFullscreen);
+  const panelFullscreen = useWorkspaceStore((s) => s.panelFullscreen);
   const [copied, setCopied] = useState(false);
   const [treeView, setTreeView] = useState(false);
 
@@ -32,6 +54,20 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
       return null;
     }
   }, [canTreeView, treeView, output]);
+
+  const outputEditorRef = useRef<unknown>(null);
+  const handleSearchOutput = useCallback(() => {
+    const ed = outputEditorRef.current as { focus(): void; getAction(id: string): { run(): void } | null; trigger?(source: string, handlerId: string, payload: unknown): void } | null;
+    if (!ed) return;
+    ed.focus();
+    requestAnimationFrame(() => {
+      if (ed.trigger) {
+        ed.trigger('keyboard', 'editor.action.startFindReplaceAction', null);
+      } else {
+        ed.getAction('editor.action.startFindReplaceAction')?.run();
+      }
+    });
+  }, []);
 
   const handleCopy = async () => {
     const ok = await copyToClipboard(output);
@@ -108,22 +144,50 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
     : outputLanguage === 'html' ? 'html'
     : 'json';
 
+  const showOutputPlaceholder = !error && !output.trim();
+  const outputPlaceholder = getOutputPlaceholder(toolId);
+
   return (
     <div className="flex flex-col h-full bg-dt-bg">
+      {showOutputOnlyHint && (
+        <div className="shrink-0 px-3 py-2 bg-dt-surface/80 border-b border-dt-border text-sm text-dt-text-muted">
+          <OutputPlaceholderText text={outputPlaceholder} />
+        </div>
+      )}
       {/* Toolbar */}
-      <div className="flex items-center gap-2 px-3 h-9 bg-dt-surface border-b border-dt-border shrink-0">
-        <span className="text-xs text-dt-text-muted mr-auto">Output</span>
+      <div className="relative z-20 flex items-center gap-2 px-3 h-9 bg-dt-surface border-b border-dt-border shrink-0 pointer-events-auto">
+        <span className="text-sm font-medium text-dt-text-muted mr-auto">Output</span>
+        {!error && !treeView && (
+          <>
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSearchOutput(); }}
+              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors flex items-center gap-1 cursor-pointer"
+              title="Search (Ctrl+F)"
+            >
+              🔍 Search
+            </button>
+            <button
+              type="button"
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPanelFullscreen(panelFullscreen === 'output' ? 'none' : 'output'); }}
+              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors cursor-pointer"
+              title={panelFullscreen === 'output' ? 'Exit fullscreen' : 'Fullscreen output panel'}
+            >
+              {panelFullscreen === 'output' ? '⊟ Exit fullscreen' : '⊞ Fullscreen'}
+            </button>
+          </>
+        )}
         {isXml && output && (
           <>
             <button
               onClick={handleFormatXml}
-              className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 bg-dt-bg rounded transition-colors"
+              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
             >
               Format
             </button>
             <button
               onClick={handleMinifyXml}
-              className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 bg-dt-bg rounded transition-colors"
+              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
             >
               Minify
             </button>
@@ -132,10 +196,10 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
         {canTreeView && (
           <button
             onClick={() => setTreeView(!treeView)}
-            className={`text-xs px-2 py-0.5 rounded transition-colors ${
+            className={`text-sm px-2.5 py-1 rounded-md border transition-colors ${
               treeView
-                ? 'bg-dt-accent text-white'
-                : 'text-dt-text-muted hover:text-dt-text bg-dt-bg'
+                ? 'bg-dt-accent text-white border-dt-accent'
+                : 'text-dt-text-muted hover:text-dt-text bg-dt-bg border-dt-border hover:border-dt-accent'
             }`}
           >
             Tree
@@ -144,21 +208,29 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
         <button
           onClick={handleCopy}
           disabled={!output}
-          className="text-xs text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2 py-0.5 bg-dt-bg rounded"
+          className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border bg-dt-bg hover:border-dt-accent transition-colors"
         >
           {copied ? '✓ Copied' : 'Copy'}
         </button>
         <button
           onClick={handleDownload}
           disabled={!output}
-          className="text-xs text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2 py-0.5 bg-dt-bg rounded"
+          className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border bg-dt-bg hover:border-dt-accent transition-colors"
         >
           Download
         </button>
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative">
+        {showOutputPlaceholder && !showOutputOnlyHint && (
+          <div
+            className="absolute inset-0 flex items-start pt-3 px-4 pointer-events-none z-10 text-sm text-dt-text-muted leading-relaxed"
+            aria-hidden
+          >
+            <OutputPlaceholderText text={outputPlaceholder} />
+          </div>
+        )}
         {error ? (
           <div className="p-3 text-dt-error whitespace-pre-wrap font-mono text-sm">{error}</div>
         ) : treeView && parsedTree !== null ? (
@@ -170,11 +242,12 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
             height="100%"
             language={monacoLang}
             value={output}
+            onMount={(editor) => { outputEditorRef.current = editor; }}
             theme={theme === 'dark' ? 'vs-dark' : 'light'}
             options={{
               readOnly: true,
               fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-              fontSize: 14,
+              fontSize: 16,
               minimap: { enabled: false },
               automaticLayout: true,
               scrollBeyondLastLine: false,
@@ -183,7 +256,7 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json' }: 
               padding: { top: 8 },
               lineNumbersMinChars: 3,
               renderLineHighlight: 'none',
-              domReadOnly: true,
+              domReadOnly: false,
             }}
           />
         )}

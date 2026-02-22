@@ -1,32 +1,35 @@
 import type { Metadata } from 'next';
-import ToolPage from '@/components/editor/ToolPage';
+import PlatformHomePage from '@/components/home/PlatformHomePage';
 
 const SITE_URL = 'https://formatterjson.org';
 
 export const metadata: Metadata = {
-  title: 'Free JSON Formatter & Developer Tools Online',
+  title: 'Free Online JSON & Developer Data Tools',
   description:
-    'Format, validate, minify JSON. XML, YAML, Base64, URL encode/decode. Free developer tools — 100% client-side, no sign-up.',
+    'Format, validate, minify, and convert JSON, XML, YAML instantly in your browser. JSON to TypeScript, Python, Java, Go. Base64, JWT decoder. 100% client-side, no sign-up.',
   keywords: [
     'JSON formatter',
-    'JSON tools',
-    'developer tools online',
-    'free JSON formatter',
-    'JSON validator online',
+    'developer data tools',
+    'JSON validator',
+    'JSON to XML',
+    'YAML formatter',
+    'XML formatter',
+    'Base64 encode',
+    'free online tools',
   ],
   openGraph: {
-    title: 'Free JSON Formatter & Developer Tools Online',
-    description: 'Format, validate, convert JSON, XML, YAML. Base64, URL encode/decode. Free, fast, 100% browser-based.',
+    title: 'Free Online JSON & Developer Data Tools Platform',
+    description: 'Format, validate, convert JSON, XML, YAML. Encoding and security tools. Free, fast, 100% browser-based. No sign-up.',
     url: SITE_URL,
   },
   twitter: {
-    title: 'Free JSON Formatter & Developer Tools Online',
-    description: 'Format, validate, convert JSON, XML, YAML. Free, fast, 100% browser-based.',
+    title: 'Free Online JSON & Developer Data Tools Platform',
+    description: 'Format, validate, convert JSON, XML, YAML. Free, fast, 100% browser-based. No sign-up.',
   },
   alternates: { canonical: SITE_URL },
 };
 
-/** Homepage is JSON Formatter by default — no redirect, same tool UI at /. */
+/** Platform homepage: unique content, no redirect, no duplicate of /json-formatter. */
 export default function HomePage() {
-  return <ToolPage toolId="json-formatter" />;
+  return <PlatformHomePage />;
 }

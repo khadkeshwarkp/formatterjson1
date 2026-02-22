@@ -2,6 +2,8 @@
 
 import Link from 'next/link';
 import { TOOL_MAP, TOOLS, type ToolMeta } from '@/lib/tools-registry';
+import { CATEGORY_TO_HUB } from '@/lib/hubs';
+import SiteFooter from '@/components/layout/SiteFooter';
 
 const SITE_URL = 'https://formatterjson.org';
 
@@ -16,6 +18,8 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
   const related = tool.relatedTools
     .map((id) => TOOL_MAP[id])
     .filter(Boolean) as ToolMeta[];
+
+  const hub = CATEGORY_TO_HUB[tool.category];
 
   // FAQ structured data
   const faqSchema = {
@@ -48,20 +52,18 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
     browserRequirements: 'Requires a modern web browser with JavaScript enabled',
   };
 
-  // Breadcrumb structured data
+  // Breadcrumb: Home > Category hub > Tool (3-level when hub exists)
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+      ...(hub
+        ? [{ '@type': 'ListItem' as const, position: 2, name: hub.label, item: `${SITE_URL}${hub.path}` }]
+        : []),
       {
         '@type': 'ListItem',
-        position: 1,
-        name: 'Home',
-        item: SITE_URL,
-      },
-      {
-        '@type': 'ListItem',
-        position: 2,
+        position: hub ? 3 : 2,
         name: tool.name,
         item: `${SITE_URL}${tool.route}`,
       },
@@ -83,6 +85,19 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
+
+      {/* Breadcrumb nav: Home > Category > Tool */}
+      <nav className="text-sm text-dt-text-muted mb-4">
+        <Link href="/" className="text-dt-accent hover:underline">Home</Link>
+        {hub && (
+          <>
+            <span className="mx-2">/</span>
+            <Link href={hub.path} className="text-dt-accent hover:underline">{hub.label}</Link>
+          </>
+        )}
+        <span className="mx-2">/</span>
+        <span className="text-dt-text">{tool.name}</span>
+      </nav>
 
       {/* H1 */}
       <h1 className="text-2xl font-bold mb-4">{tool.seoH1}</h1>
@@ -220,6 +235,11 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
         <Link href="/" className="text-sm text-dt-accent hover:underline">
           Home
         </Link>
+        {hub && (
+          <Link href={hub.path} className="text-sm text-dt-accent hover:underline">
+            {hub.label}
+          </Link>
+        )}
         {TOOLS.filter((t) => t.id !== toolId).map((t) => (
           <Link
             key={t.id}
@@ -230,6 +250,8 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
           </Link>
         ))}
       </div>
+
+      <SiteFooter />
     </section>
   );
 }

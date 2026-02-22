@@ -7,6 +7,8 @@ import { GA_TRACKING_ID } from '@/lib/gtag';
 
 const SITE_URL = 'https://formatterjson.org';
 
+export const viewport = { width: 'device-width', initialScale: 1 } as const;
+
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {

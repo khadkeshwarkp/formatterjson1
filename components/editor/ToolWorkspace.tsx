@@ -25,12 +25,38 @@ import {
   urlDecode,
   base64Encode,
   base64Decode,
+  jsonToTypeScript,
+  jsonToPython,
+  jsonToJava,
+  jsonToGo,
+  jsonToCsharp,
+  jsonToDart,
+  jsonToRust,
+  jsonToKotlin,
+  jsonToSwift,
+  jsonToPhp,
+  sortJson,
+  jsonEscape,
+  jsonUnescape,
+  jsonToHtmlTable,
+  jsonToSql,
+  jsonToTsv,
+  loremIpsum,
+  uuidGenerator,
+  randomJsonGenerator,
+  timestampConverter,
+  regexTester,
+  jwtGenerator,
+  hashGenerator,
+  colorConverter,
+  textCaseConverter,
   type ProcessResult,
 } from '@/lib/processors';
 import MonacoWrapper from './MonacoWrapper';
 import OutputPanel from './OutputPanel';
 import Toolbar from './Toolbar';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import { isInputOptionalTool } from '@/lib/input-placeholders';
 
 interface ToolWorkspaceProps {
   toolId: string;
@@ -62,6 +88,36 @@ function getProcessor(toolId: string, base64Mode: 'encode' | 'decode') {
     case 'json-parser':
     case 'json-pretty-print': return formatJson;
     case 'json-diff': return jsonDiff;
+    case 'json-to-typescript': return jsonToTypeScript;
+    case 'json-to-python': return jsonToPython;
+    case 'json-to-java': return jsonToJava;
+    case 'json-to-go': return jsonToGo;
+    case 'json-to-csharp': return jsonToCsharp;
+    case 'json-to-dart': return jsonToDart;
+    case 'json-to-rust': return jsonToRust;
+    case 'json-to-kotlin': return jsonToKotlin;
+    case 'json-to-swift': return jsonToSwift;
+    case 'json-to-php': return jsonToPhp;
+    case 'json-compare':
+    case 'json-diff': return jsonDiff;
+    case 'json-sorter': return sortJson;
+    case 'json-escape': return jsonEscape;
+    case 'json-unescape': return jsonUnescape;
+    case 'json-editor': return formatJson;
+    case 'json-to-html-table': return jsonToHtmlTable;
+    case 'json-to-sql': return jsonToSql;
+    case 'json-to-excel': return jsonToCsv;
+    case 'json-to-tsv': return jsonToTsv;
+    case 'json-to-one-line': return minifyJson;
+    case 'lorem-ipsum': return loremIpsum;
+    case 'uuid-generator': return uuidGenerator;
+    case 'random-json-generator': return randomJsonGenerator;
+    case 'timestamp-converter': return timestampConverter;
+    case 'regex-tester': return regexTester;
+    case 'jwt-generator': return jwtGenerator;
+    case 'hash-generator': return hashGenerator;
+    case 'color-converter': return colorConverter;
+    case 'text-case-converter': return textCaseConverter;
     default: return formatJson;
   }
 }
@@ -72,6 +128,14 @@ function getOutputLanguage(toolId: string): string {
   if (['yaml-formatter', 'json-to-yaml'].includes(toolId)) return 'yaml';
   if (toolId === 'json-to-csv') return 'csv';
   if (toolId === 'html-formatter') return 'html';
+  const codeConverters = ['json-to-typescript', 'json-to-python', 'json-to-java', 'json-to-go', 'json-to-csharp', 'json-to-dart', 'json-to-rust', 'json-to-kotlin', 'json-to-swift', 'json-to-php'];
+  if (codeConverters.includes(toolId)) return 'plaintext';
+  if (['json-to-html-table'].includes(toolId)) return 'html';
+  if (['json-escape', 'json-unescape', 'json-to-sql', 'json-to-tsv', 'json-compare'].includes(toolId)) return 'text';
+  if (toolId === 'json-to-excel') return 'csv';
+  const utilityText = ['lorem-ipsum', 'uuid-generator', 'timestamp-converter', 'regex-tester', 'jwt-generator', 'hash-generator', 'color-converter', 'text-case-converter'];
+  if (utilityText.includes(toolId)) return 'text';
+  if (toolId === 'random-json-generator') return 'json';
   return 'json';
 }
 
@@ -79,7 +143,10 @@ function getInputLanguage(toolId: string): string {
   if (['base64', 'base64-encode', 'base64-decode', 'jwt-decoder', 'url-encode', 'url-decode'].includes(toolId)) return 'plaintext';
   if (['yaml-formatter', 'yaml-to-json'].includes(toolId)) return 'yaml';
   if (['xml-formatter', 'xml-validator', 'xml-to-json'].includes(toolId)) return 'xml';
-  if (['csv-to-json', 'html-formatter'].includes(toolId)) return 'plaintext';
+  if (['csv-to-json', 'html-formatter', 'json-escape', 'json-unescape'].includes(toolId)) return 'plaintext';
+  const utilityPlain = ['lorem-ipsum', 'uuid-generator', 'random-json-generator', 'timestamp-converter', 'regex-tester', 'hash-generator', 'color-converter', 'text-case-converter'];
+  if (utilityPlain.includes(toolId)) return 'plaintext';
+  if (toolId === 'jwt-generator') return 'json';
   return 'json';
 }
 
@@ -102,6 +169,8 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const setBase64Mode = useWorkspaceStore((s) => s.setBase64Mode);
   const toggleSidebar = useWorkspaceStore((s) => s.toggleSidebar);
   const toggleFullscreen = useWorkspaceStore((s) => s.toggleFullscreen);
+  const panelFullscreen = useWorkspaceStore((s) => s.panelFullscreen);
+  const setPanelFullscreen = useWorkspaceStore((s) => s.setPanelFullscreen);
   const setShowShortcutsModal = useWorkspaceStore((s) => s.setShowShortcutsModal);
   const addToast = useWorkspaceStore((s) => s.addToast);
 
@@ -112,34 +181,41 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
 
+  const isTwoPanelDiff = toolId === 'json-diff' || toolId === 'json-compare';
   const runTool = useCallback(() => {
     setProcessing(true);
-    setTimeout(() => {
-      if (toolId === 'json-diff') {
-        const result = jsonDiffTwo(input, input2);
-        setOutput(toolId, result.output);
-        setError(result.error);
-        if (result.error) addToast(result.error, 'error');
-      } else {
-        const processor = getProcessor(toolId, base64Mode);
-        const result: ProcessResult = processor(input);
-        setOutput(toolId, result.output);
-        setError(result.error);
-        if (result.error) addToast(result.error, 'error');
+    const run = async () => {
+      try {
+        if (isTwoPanelDiff) {
+          const result = jsonDiffTwo(input, input2);
+          setOutput(toolId, result.output);
+          setError(result.error);
+          if (result.error) addToast(result.error, 'error');
+        } else {
+          const processor = getProcessor(toolId, base64Mode);
+          const maybePromise = processor(input);
+          const result: ProcessResult = await Promise.resolve(maybePromise);
+          setOutput(toolId, result.output);
+          setError(result.error);
+          if (result.error) addToast(result.error, 'error');
+        }
+      } finally {
+        setProcessing(false);
       }
-      setProcessing(false);
-    }, 0);
-  }, [toolId, input, input2, base64Mode, setOutput, addToast]);
+    };
+    run();
+  }, [toolId, input, input2, base64Mode, setOutput, addToast, isTwoPanelDiff]);
 
-  // Auto-run on input change (debounced)
+  // Auto-run on input change (debounced). For input-optional tools, run when empty too (default output).
+  const inputOptional = isInputOptionalTool(toolId);
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (toolId === 'json-diff') {
+      if (toolId === 'json-diff' || toolId === 'json-compare') {
         if (input || input2) runTool();
-      } else if (input) runTool();
+      } else if (inputOptional || input) runTool();
     }, 300);
     return () => clearTimeout(timer);
-  }, [toolId, input, input2, runTool]);
+  }, [toolId, input, input2, runTool, inputOptional]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -261,8 +337,45 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
         isJsonTool={isJsonTool}
       />
 
-      {/* Split panels — json-diff: side-by-side inputs + output below; else: input | output */}
-      {toolId === 'json-diff' ? (
+      {/* Panel fullscreen: show only input or only output with exit button */}
+      {panelFullscreen === 'input' && (
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-dt-surface border-b border-dt-border shrink-0">
+            <span className="text-sm font-medium text-dt-text">Input — Fullscreen</span>
+            <button
+              onClick={() => setPanelFullscreen('none')}
+              className="text-sm font-medium px-3 py-1 rounded-lg bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white border border-dt-accent/50 transition-colors"
+              title="Exit fullscreen"
+            >
+              ⊟ Exit fullscreen
+            </button>
+          </div>
+          <div className="flex-1 min-h-0">
+            <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
+          </div>
+        </div>
+      )}
+
+      {panelFullscreen === 'output' && (
+        <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex items-center justify-between px-3 py-1.5 bg-dt-surface border-b border-dt-border shrink-0">
+            <span className="text-sm font-medium text-dt-text">Output — Fullscreen</span>
+            <button
+              onClick={() => setPanelFullscreen('none')}
+              className="text-sm font-medium px-3 py-1 rounded-lg bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white border border-dt-accent/50 transition-colors"
+              title="Exit fullscreen"
+            >
+              ⊟ Exit fullscreen
+            </button>
+          </div>
+          <div className="flex-1 min-h-0">
+            <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} />
+          </div>
+        </div>
+      )}
+
+      {/* Split panels — json-diff / json-compare: side-by-side inputs + output below; else: input | output */}
+      {panelFullscreen === 'none' && isTwoPanelDiff ? (
         <div className="flex flex-1 flex-col min-h-0">
           <div className="flex flex-1 min-h-0 border-b border-dt-border">
             <div className="flex-1 min-w-0 flex flex-col border-r border-dt-border">
@@ -285,7 +398,11 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
             </div>
           </div>
         </div>
-      ) : (
+      ) : panelFullscreen === 'none' && inputOptional ? (
+        <div className="flex-1 min-h-0 flex flex-col">
+          <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} showOutputOnlyHint />
+        </div>
+      ) : panelFullscreen === 'none' ? (
         <div ref={containerRef} className="flex flex-1 min-h-0">
           <div style={{ width: `${splitPercent}%` }} className="min-w-0 shadow-[inset_2px_0_8px_rgba(0,0,0,0.15)]">
             <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
@@ -295,7 +412,7 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
             <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} />
           </div>
         </div>
-      )}
+      ) : null}
 
       {/* Multi-convert bar (for JSON tools) */}
       {isJsonTool && input && (

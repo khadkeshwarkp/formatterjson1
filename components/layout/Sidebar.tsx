@@ -170,9 +170,7 @@ function SidebarItem({
     <Link
       href={tool.route}
       onClick={(e) => {
-        e.preventDefault();
         onSelect();
-        window.history.pushState(null, '', tool.route);
       }}
       className={`group flex items-center gap-2 px-2 py-1 mx-1 rounded text-sm transition-colors ${
         active

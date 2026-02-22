@@ -18,6 +18,8 @@ interface WorkspaceState {
   favoriteTools: string[];
   base64Mode: 'encode' | 'decode';
   isFullscreen: boolean;
+  /** 'input' = input panel fullscreen, 'output' = output panel fullscreen, 'none' = normal */
+  panelFullscreen: 'none' | 'input' | 'output';
   showShortcutsModal: boolean;
   toasts: { id: number; message: string; type: 'success' | 'error' }[];
 
@@ -32,6 +34,7 @@ interface WorkspaceState {
   toggleTheme: () => void;
   toggleSidebar: () => void;
   toggleFullscreen: () => void;
+  setPanelFullscreen: (panel: 'none' | 'input' | 'output') => void;
   setBase64Mode: (mode: 'encode' | 'decode') => void;
   toggleFavorite: (toolId: string) => void;
   setShowShortcutsModal: (show: boolean) => void;
@@ -53,6 +56,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       favoriteTools: [],
       base64Mode: 'encode',
       isFullscreen: false,
+      panelFullscreen: 'none',
       showShortcutsModal: false,
       toasts: [],
 
@@ -119,6 +123,8 @@ export const useWorkspaceStore = create<WorkspaceState>()(
 
       toggleFullscreen: () =>
         set((s) => ({ isFullscreen: !s.isFullscreen })),
+
+      setPanelFullscreen: (panel) => set({ panelFullscreen: panel }),
 
       setBase64Mode: (mode) => set({ base64Mode: mode }),
 

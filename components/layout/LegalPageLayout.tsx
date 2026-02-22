@@ -10,9 +10,9 @@ export default function LegalPageLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-dt-bg text-dt-text">
+    <div className="h-screen overflow-y-auto overflow-x-hidden bg-dt-bg text-dt-text">
       {/* Header */}
-      <header className="border-b border-dt-border">
+      <header className="border-b border-dt-border shrink-0">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center justify-between">
           <Link href="/" className="text-lg font-semibold text-dt-text hover:text-dt-accent transition-colors">
             DevTools Workspace
@@ -31,7 +31,7 @@ export default function LegalPageLayout({
       </header>
 
       {/* Content */}
-      <main className="max-w-4xl mx-auto px-6 py-10">
+      <main className="max-w-4xl mx-auto px-6 py-10 min-h-0">
         <h1 className="text-3xl font-bold mb-8">{title}</h1>
         <div className="prose-dt text-dt-text-muted leading-relaxed space-y-4">
           {children}

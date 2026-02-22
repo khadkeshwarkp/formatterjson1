@@ -132,3 +132,25 @@ body {
 .monaco-editor .margin {
   background: transparent !important;
 }
+
+/* Ensure Monaco find/replace widget is above content and close button is clickable */
+.monaco-editor .find-widget,
+.monaco-editor [class*="find-widget"],
+.monaco-editor .monaco-findInput,
+.monaco-editor .monaco-inputbox {
+  z-index: 100 !important;
+  pointer-events: auto !important;
+}
+.monaco-editor .find-widget .button,
+.monaco-editor .find-widget [class*="button"] {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}
+/* Overlay widgets (find, suggest) - ensure they receive clicks */
+.monaco-editor .overflowingContentWidgets {
+  z-index: 100 !important;
+  pointer-events: auto !important;
+}
+.monaco-editor .overflowingContentWidgets .monaco-editor .find-widget {
+  pointer-events: auto !important;
+}

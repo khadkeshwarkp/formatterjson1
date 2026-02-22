@@ -47,6 +47,7 @@ export default function Toolbar({
 }: ToolbarProps) {
   const tool = TOOL_MAP[toolId];
   const input = useWorkspaceStore((s) => s.toolData[toolId]?.input ?? '');
+  const output = useWorkspaceStore((s) => s.toolData[toolId]?.output ?? '');
   const setInput = useWorkspaceStore((s) => s.setInput);
   const clearInput = useWorkspaceStore((s) => s.clearInput);
   const addToast = useWorkspaceStore((s) => s.addToast);
@@ -84,7 +85,27 @@ export default function Toolbar({
   };
 
   const handlePrint = () => {
-    window.print();
+    const content = [input && `=== Input ===\n${input}`, output && `=== Output ===\n${output}`]
+      .filter(Boolean)
+      .join('\n\n');
+    if (!content.trim()) return;
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html>
+      <html>
+        <head><title>Print</title></head>
+        <body style="font-family: monospace; font-size: 14px; padding: 16px; white-space: pre-wrap; word-wrap: break-word;">
+          <pre>${content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
+        </body>
+      </html>
+    `);
+    win.document.close();
+    win.focus();
+    setTimeout(() => {
+      win.print();
+      win.close();
+    }, 300);
   };
 
   const handleImport = () => {
@@ -146,7 +167,7 @@ export default function Toolbar({
       <button
         onClick={onRun}
         disabled={processing}
-        className="flex items-center gap-1 text-xs bg-dt-accent hover:bg-dt-accent-hover disabled:opacity-50 text-white px-2 py-0.5 rounded transition-colors"
+        className="flex items-center gap-1 text-sm font-medium bg-dt-accent hover:bg-dt-accent-hover disabled:opacity-50 text-white px-3 py-1 rounded-lg border border-dt-accent transition-colors"
         title="Run (Ctrl+Enter)"
       >
         {processing ? <span className="animate-spin">⟳</span> : <span>▶</span>}
@@ -157,7 +178,7 @@ export default function Toolbar({
       {isJsonTool && (
         <button
           onClick={handleSortKeys}
-          className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+          className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
           title="Sort object keys alphabetically"
         >
           A→Z Sort
@@ -167,7 +188,7 @@ export default function Toolbar({
       {/* Import */}
       <button
         onClick={handleImport}
-        className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Import file"
       >
         📂 Import
@@ -176,8 +197,9 @@ export default function Toolbar({
       {/* Print */}
       <button
         onClick={handlePrint}
-        className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
-        title="Print output"
+        disabled={!input && !output}
+        className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
+        title="Print input and output data"
       >
         🖨 Print
       </button>
@@ -185,7 +207,7 @@ export default function Toolbar({
       {/* Load Sample */}
       <button
         onClick={handleLoadSample}
-        className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Load sample data"
       >
         📋 Sample
@@ -194,7 +216,7 @@ export default function Toolbar({
       {/* Clear */}
       <button
         onClick={handleClear}
-        className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Clear input and output"
       >
         ✕ Clear
@@ -204,7 +226,7 @@ export default function Toolbar({
       <button
         onClick={handleCopyInput}
         disabled={!input}
-        className="text-xs text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Copy input to clipboard"
       >
         ⎘ Copy
@@ -232,25 +254,25 @@ export default function Toolbar({
           });
         }}
         disabled={!input}
-        className="text-xs text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="flex items-center gap-1.5 text-sm font-medium bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white disabled:opacity-30 px-3 py-1 rounded-lg border border-dt-accent/50 transition-colors"
         title="Copy shareable link"
       >
         🔗 Share
       </button>
 
-      {/* Fullscreen */}
+      {/* Fullscreen (whole workspace) */}
       <button
         onClick={toggleFullscreen}
-        className="text-xs text-dt-text-muted hover:text-dt-text px-2 py-0.5 rounded hover:bg-dt-bg transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Toggle fullscreen (Ctrl+Shift+F)"
       >
-        {isFullscreen ? '⊟' : '⊞'}
+        {isFullscreen ? '⊟ Exit' : '⊞ Fullscreen'}
       </button>
 
       {/* Shortcuts */}
       <button
         onClick={() => setShowShortcutsModal(true)}
-        className="text-[10px] text-dt-text-dim hover:text-dt-text-muted px-1.5 py-0.5 rounded border border-dt-border hover:border-dt-text-dim transition-colors"
+        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
         title="Keyboard shortcuts (?)"
       >
         ⌘ ?
