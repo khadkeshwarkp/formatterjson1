@@ -9,6 +9,76 @@
   --sidebar-collapsed: 48px;
   --header-height: 40px;
   --tab-height: 36px;
+
+  color-scheme: light;
+  --dt-bg: #f6f7f9;
+  --dt-soft: #f1f3f6;
+  --dt-card: #ffffff;
+  --dt-surface: rgba(255, 255, 255, 0.78);
+  --dt-sidebar: rgba(255, 255, 255, 0.86);
+  --dt-border: rgba(0, 0, 0, 0.06);
+  --dt-accent: #4c4f58;
+  --dt-accent-hover: #2f3137;
+  --dt-text: #1c1c1e;
+  --dt-text-muted: #6b6f76;
+  --dt-text-dim: #8f949c;
+  --dt-tab: rgba(241, 243, 246, 0.85);
+  --dt-tab-active: rgba(255, 255, 255, 0.98);
+  --dt-glass: rgba(255, 255, 255, 0.72);
+  --dt-glass-border: rgba(0, 0, 0, 0.06);
+  --dt-shadow-sm: rgba(17, 24, 39, 0.2);
+  --dt-shadow-lg: rgba(17, 24, 39, 0.26);
+  --dt-success: #3e8b5b;
+  --dt-error: #b16a6a;
+  --dt-warning: #9f8051;
+}
+
+.dark {
+  color-scheme: dark;
+  --dt-bg: #0f1115;
+  --dt-soft: #1b1f2a;
+  --dt-card: #151821;
+  --dt-surface: rgba(21, 24, 33, 0.86);
+  --dt-sidebar: rgba(18, 21, 29, 0.9);
+  --dt-border: rgba(255, 255, 255, 0.06);
+  --dt-accent: #cacdd6;
+  --dt-accent-hover: #f0f1f5;
+  --dt-text: #e6e6e6;
+  --dt-text-muted: #9a9aa3;
+  --dt-text-dim: #72747d;
+  --dt-tab: rgba(27, 31, 42, 0.86);
+  --dt-tab-active: rgba(30, 34, 47, 0.95);
+  --dt-glass: rgba(24, 28, 37, 0.74);
+  --dt-glass-border: rgba(255, 255, 255, 0.07);
+  --dt-shadow-sm: rgba(0, 0, 0, 0.55);
+  --dt-shadow-lg: rgba(0, 0, 0, 0.72);
+  --dt-success: #5f9e79;
+  --dt-error: #a87777;
+  --dt-warning: #9e865e;
+}
+
+.black {
+  color-scheme: dark;
+  --dt-bg: #0b0b0c;
+  --dt-soft: #161618;
+  --dt-card: #111113;
+  --dt-surface: rgba(17, 17, 19, 0.9);
+  --dt-sidebar: rgba(16, 16, 18, 0.94);
+  --dt-border: rgba(255, 255, 255, 0.06);
+  --dt-accent: #d6d6da;
+  --dt-accent-hover: #ffffff;
+  --dt-text: #e6e6e6;
+  --dt-text-muted: #9a9aa3;
+  --dt-text-dim: #707077;
+  --dt-tab: rgba(22, 22, 24, 0.88);
+  --dt-tab-active: rgba(25, 25, 28, 0.96);
+  --dt-glass: rgba(19, 19, 22, 0.82);
+  --dt-glass-border: rgba(255, 255, 255, 0.07);
+  --dt-shadow-sm: rgba(0, 0, 0, 0.7);
+  --dt-shadow-lg: rgba(0, 0, 0, 0.82);
+  --dt-success: #5b916f;
+  --dt-error: #9a6e6e;
+  --dt-warning: #8e7754;
 }
 
 * {
@@ -22,101 +92,67 @@ body {
   height: 100%;
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
+  background: var(--dt-bg);
+  color: var(--dt-text);
 }
 
-/* Dark theme (default) */
-.dark {
-  color-scheme: dark;
-  --dt-bg: #0f172a;
-  --dt-surface: #111827;
-  --dt-sidebar: #0c1322;
-  --dt-border: #1e293b;
-  --dt-accent: #60a5fa;
-  --dt-accent-hover: #3b82f6;
-  --dt-text: #f1f5f9;
-  --dt-text-muted: #94a3b8;
-  --dt-text-dim: #64748b;
-  --dt-tab: #0f172a;
-  --dt-tab-active: #111827;
+.app-shell-bg {
+  background:
+    radial-gradient(120% 85% at 50% -20%, rgba(255, 255, 255, 0.12), transparent 56%),
+    radial-gradient(90% 80% at 100% 100%, rgba(0, 0, 0, 0.05), transparent 60%),
+    var(--dt-bg);
 }
 
-/* Light theme */
-.light {
-  color-scheme: light;
-  --dt-bg: #f8fafc;
-  --dt-surface: #ffffff;
-  --dt-sidebar: #f1f5f9;
-  --dt-border: #e2e8f0;
-  --dt-accent: #2563eb;
-  --dt-accent-hover: #1d4ed8;
-  --dt-text: #1e293b;
-  --dt-text-muted: #475569;
-  --dt-text-dim: #94a3b8;
-  --dt-tab: #f1f5f9;
-  --dt-tab-active: #ffffff;
+.dark .app-shell-bg,
+.black .app-shell-bg {
+  background:
+    radial-gradient(120% 85% at 50% -20%, rgba(255, 255, 255, 0.04), transparent 56%),
+    radial-gradient(90% 80% at 100% 100%, rgba(0, 0, 0, 0.28), transparent 60%),
+    var(--dt-bg);
 }
 
-/* Scrollbar styling — dark */
-.dark ::-webkit-scrollbar,
-.dark::-webkit-scrollbar {
+button,
+input,
+textarea,
+a,
+.resizer,
+[role='tab'] {
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+
+::-webkit-scrollbar {
   width: 8px;
   height: 8px;
 }
 
-.dark ::-webkit-scrollbar-track,
-.dark::-webkit-scrollbar-track {
-  background: #0f172a;
+::-webkit-scrollbar-track {
+  background: var(--dt-soft);
 }
 
-.dark ::-webkit-scrollbar-thumb,
-.dark::-webkit-scrollbar-thumb {
-  background: #1e293b;
-  border-radius: 4px;
+::-webkit-scrollbar-thumb {
+  background: color-mix(in oklab, var(--dt-text-muted) 34%, transparent);
+  border-radius: 99px;
 }
 
-.dark ::-webkit-scrollbar-thumb:hover,
-.dark::-webkit-scrollbar-thumb:hover {
-  background: #334155;
+::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in oklab, var(--dt-text-muted) 50%, transparent);
 }
 
-/* Scrollbar styling — light */
-.light ::-webkit-scrollbar,
-.light::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-.light ::-webkit-scrollbar-track,
-.light::-webkit-scrollbar-track {
-  background: #f1f5f9;
-}
-
-.light ::-webkit-scrollbar-thumb,
-.light::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
-}
-
-.light ::-webkit-scrollbar-thumb:hover,
-.light::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-
-/* Resizer handle */
 .resizer {
-  width: 4px;
+  width: 8px;
   cursor: col-resize;
   background: transparent;
-  transition: background 0.15s;
   flex-shrink: 0;
+  border-radius: 999px;
+  margin: 0 8px;
 }
 
 .resizer:hover,
 .resizer.active {
-  background: var(--dt-accent);
+  background: color-mix(in oklab, var(--dt-text-muted) 28%, transparent);
 }
 
-/* Toast slide-in animation */
 @keyframes slideIn {
   from {
     transform: translateX(100%);
@@ -128,29 +164,63 @@ body {
   }
 }
 
-/* Monaco overrides */
 .monaco-editor .margin {
   background: transparent !important;
 }
 
-/* Ensure Monaco find/replace widget is above content and close button is clickable */
+.monaco-editor .dt-diff-line-modified {
+  background: rgba(158, 132, 85, 0.2) !important;
+}
+
+.monaco-editor .dt-diff-line-mismatch {
+  background: rgba(127, 92, 166, 0.18) !important;
+}
+
+.monaco-diff-editor .line-delete,
+.monaco-diff-editor .char-delete,
+.monaco-diff-editor .line-delete {
+  background: rgba(178, 112, 112, 0.11) !important;
+}
+
+.monaco-diff-editor .line-insert,
+.monaco-diff-editor .char-insert,
+.monaco-diff-editor .line-insert {
+  background: rgba(84, 158, 112, 0.11) !important;
+}
+
+.dark .monaco-diff-editor .line-delete,
+.black .monaco-diff-editor .line-delete,
+.dark .monaco-diff-editor .char-delete,
+.black .monaco-diff-editor .char-delete {
+  background: rgba(178, 112, 112, 0.1) !important;
+}
+
+.dark .monaco-diff-editor .line-insert,
+.black .monaco-diff-editor .line-insert,
+.dark .monaco-diff-editor .char-insert,
+.black .monaco-diff-editor .char-insert {
+  background: rgba(84, 158, 112, 0.1) !important;
+}
+
 .monaco-editor .find-widget,
-.monaco-editor [class*="find-widget"],
+.monaco-editor [class*='find-widget'],
 .monaco-editor .monaco-findInput,
 .monaco-editor .monaco-inputbox {
   z-index: 100 !important;
   pointer-events: auto !important;
 }
+
 .monaco-editor .find-widget .button,
-.monaco-editor .find-widget [class*="button"] {
+.monaco-editor .find-widget [class*='button'] {
   pointer-events: auto !important;
   cursor: pointer !important;
 }
-/* Overlay widgets (find, suggest) - ensure they receive clicks */
+
 .monaco-editor .overflowingContentWidgets {
   z-index: 100 !important;
   pointer-events: auto !important;
 }
+
 .monaco-editor .overflowingContentWidgets .monaco-editor .find-widget {
   pointer-events: auto !important;
 }

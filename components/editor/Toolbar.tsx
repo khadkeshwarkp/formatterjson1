@@ -130,8 +130,11 @@ export default function Toolbar({
     e.target.value = '';
   };
 
+  const btnClass =
+    'text-sm text-dt-text-muted hover:text-dt-text px-3 py-1.5 rounded-xl border border-dt-border hover:bg-dt-soft bg-dt-card transition-all duration-200';
+
   return (
-    <div className="flex items-center gap-2 px-3 h-9 bg-gradient-to-r from-dt-surface to-dt-bg border-b border-dt-border shrink-0">
+    <div className="flex items-center gap-2.5 px-4 min-h-12 bg-dt-surface border border-dt-border rounded-dt-lg shrink-0">
       <input
         ref={fileInputRef}
         type="file"
@@ -139,20 +142,17 @@ export default function Toolbar({
         className="hidden"
         onChange={handleFileChange}
       />
-      {/* Tool identity */}
-      <span className="font-mono text-xs text-dt-text-dim">{toolIcon}</span>
-      <h1 className="text-sm font-semibold text-dt-text mr-1">{toolName}</h1>
+      <span className="font-mono text-xs text-dt-text-dim w-6 text-center">{toolIcon}</span>
+      <h1 className="text-sm font-semibold text-dt-text">{toolName}</h1>
 
       {toolId === 'base64' && setBase64Mode && (
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 rounded-xl overflow-hidden border border-dt-border bg-dt-card">
           {(['encode', 'decode'] as const).map((mode) => (
             <button
               key={mode}
               onClick={() => setBase64Mode(mode)}
-              className={`text-xs px-2 py-0.5 rounded capitalize ${
-                base64Mode === mode
-                  ? 'bg-dt-accent text-white'
-                  : 'text-dt-text-muted bg-dt-bg hover:text-dt-text'
+              className={`text-xs px-3 py-1.5 capitalize transition-colors duration-200 ${
+                base64Mode === mode ? 'bg-dt-soft text-dt-text' : 'text-dt-text-muted hover:text-dt-text'
               }`}
             >
               {mode}
@@ -161,80 +161,41 @@ export default function Toolbar({
         </div>
       )}
 
-      <div className="w-px h-4 bg-dt-border" />
+      <div className="w-px h-5 bg-dt-border" />
 
-      {/* Run */}
       <button
         onClick={onRun}
         disabled={processing}
-        className="flex items-center gap-1 text-sm font-medium bg-dt-accent hover:bg-dt-accent-hover disabled:opacity-50 text-white px-3 py-1 rounded-lg border border-dt-accent transition-colors"
+        className="flex items-center gap-2 text-sm font-medium bg-dt-soft hover:bg-dt-text hover:text-dt-bg disabled:opacity-50 text-dt-text px-4 py-1.5 rounded-xl border border-dt-border transition-all duration-200"
         title="Run (Ctrl+Enter)"
       >
         {processing ? <span className="animate-spin">⟳</span> : <span>▶</span>}
         Run
       </button>
 
-      {/* Sort keys (JSON tools) */}
       {isJsonTool && (
-        <button
-          onClick={handleSortKeys}
-          className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-          title="Sort object keys alphabetically"
-        >
-          A→Z Sort
+        <button onClick={handleSortKeys} className={btnClass} title="Sort object keys alphabetically">
+          Sort
         </button>
       )}
-
-      {/* Import */}
-      <button
-        onClick={handleImport}
-        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Import file"
-      >
-        📂 Import
+      <button onClick={handleImport} className={btnClass} title="Import file">
+        Import
       </button>
-
-      {/* Print */}
-      <button
-        onClick={handlePrint}
-        disabled={!input && !output}
-        className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Print input and output data"
-      >
-        🖨 Print
+      <button onClick={handlePrint} disabled={!input && !output} className={btnClass} title="Print input and output data">
+        Print
       </button>
-
-      {/* Load Sample */}
-      <button
-        onClick={handleLoadSample}
-        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Load sample data"
-      >
-        📋 Sample
+      <button onClick={handleLoadSample} className={btnClass} title="Load sample data">
+        Sample
       </button>
-
-      {/* Clear */}
-      <button
-        onClick={handleClear}
-        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Clear input and output"
-      >
-        ✕ Clear
+      <button onClick={handleClear} className={btnClass} title="Clear input and output">
+        Clear
       </button>
-
-      {/* Copy Input */}
-      <button
-        onClick={handleCopyInput}
-        disabled={!input}
-        className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Copy input to clipboard"
-      >
-        ⎘ Copy
+      <button onClick={handleCopyInput} disabled={!input} className={btnClass} title="Copy input to clipboard">
+        Copy
       </button>
 
       <div className="flex-1" />
 
-      {/* Share */}
       <button
         onClick={() => {
           if (!input.trim()) {
@@ -246,35 +207,23 @@ export default function Toolbar({
             addToast('Input too large to share', 'error');
             return;
           }
-          const tool = TOOL_MAP[toolId];
+          const mappedTool = TOOL_MAP[toolId];
           const base = typeof window !== 'undefined' ? window.location.origin : 'https://formatterjson.org';
-          const url = `${base}${tool?.route ?? '/json-formatter'}?data=${compressed}`;
+          const url = `${base}${mappedTool?.route ?? '/json-formatter'}?data=${compressed}`;
           copyToClipboard(url).then((ok) => {
             addToast(ok ? 'Share link copied to clipboard' : 'Copy failed', ok ? 'success' : 'error');
           });
         }}
         disabled={!input}
-        className="flex items-center gap-1.5 text-sm font-medium bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white disabled:opacity-30 px-3 py-1 rounded-lg border border-dt-accent/50 transition-colors"
+        className={`${btnClass} disabled:opacity-30`}
         title="Copy shareable link"
       >
-        🔗 Share
+        Share
       </button>
-
-      {/* Fullscreen (whole workspace) */}
-      <button
-        onClick={toggleFullscreen}
-        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Toggle fullscreen (Ctrl+Shift+F)"
-      >
-        {isFullscreen ? '⊟ Exit' : '⊞ Fullscreen'}
+      <button onClick={toggleFullscreen} className={btnClass} title="Toggle fullscreen (Ctrl+Shift+F)">
+        {isFullscreen ? 'Exit' : 'Fullscreen'}
       </button>
-
-      {/* Shortcuts */}
-      <button
-        onClick={() => setShowShortcutsModal(true)}
-        className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-        title="Keyboard shortcuts (?)"
-      >
+      <button onClick={() => setShowShortcutsModal(true)} className={btnClass} title="Keyboard shortcuts (?)">
         ⌘ ?
       </button>
     </div>

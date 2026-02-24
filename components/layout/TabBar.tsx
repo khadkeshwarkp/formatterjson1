@@ -7,7 +7,7 @@ export default function TabBar() {
   const { openTabs, activeTool, setActiveTool, closeTab } = useWorkspaceStore();
 
   return (
-    <div className="flex items-center h-9 bg-dt-surface border-b border-dt-border overflow-x-auto">
+    <div className="mx-3 mb-0 mt-3 flex items-center h-12 px-2 gap-2 bg-dt-surface/90 backdrop-blur-dt border border-dt-border rounded-dt-lg overflow-x-auto">
       {openTabs.map((id) => {
         const tool = TOOL_MAP[id];
         if (!tool) return null;
@@ -16,10 +16,11 @@ export default function TabBar() {
         return (
           <div
             key={id}
-            className={`flex items-center gap-1 px-2 h-full text-xs border-r border-dt-border cursor-pointer select-none transition-colors shrink-0 ${
+            role="tab"
+            className={`flex items-center gap-2 pl-3 pr-2 py-2 rounded-2xl text-xs cursor-pointer select-none transition-all duration-200 shrink-0 border ${
               isActive
-                ? 'bg-dt-bg text-dt-text border-b-2 border-b-dt-accent'
-                : 'bg-dt-tab text-dt-text-muted hover:bg-dt-surface'
+                ? 'bg-dt-card text-dt-text border-dt-border shadow-dt-soft'
+                : 'bg-transparent text-dt-text-muted border-transparent hover:bg-dt-soft/70 hover:text-dt-text'
             }`}
             onClick={() => {
               setActiveTool(id);
@@ -27,13 +28,13 @@ export default function TabBar() {
             }}
           >
             <span className="font-mono text-[10px] w-5 text-center">{tool.icon}</span>
-            <span>{tool.name}</span>
+            <span className="font-medium">{tool.name}</span>
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 closeTab(id);
               }}
-              className="ml-1 text-dt-text-dim hover:text-dt-error text-[10px] leading-none"
+              className="ml-0.5 p-1 rounded-lg text-dt-text-dim hover:text-dt-text hover:bg-dt-soft transition-colors duration-200"
               title="Close tab"
             >
               ✕

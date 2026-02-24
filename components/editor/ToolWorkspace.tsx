@@ -56,6 +56,7 @@ import MonacoWrapper from './MonacoWrapper';
 import OutputPanel from './OutputPanel';
 import Toolbar from './Toolbar';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
+import JsonDiffView from './JsonDiffView';
 import { isInputOptionalTool } from '@/lib/input-placeholders';
 
 interface ToolWorkspaceProps {
@@ -165,6 +166,7 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const setInput = useWorkspaceStore((s) => s.setInput);
   const input = useWorkspaceStore((s) => s.toolData[toolId]?.input ?? '');
   const input2 = useWorkspaceStore((s) => s.toolData[toolId]?.input2 ?? '');
+  const output = useWorkspaceStore((s) => s.toolData[toolId]?.output ?? '');
   const base64Mode = useWorkspaceStore((s) => s.base64Mode);
   const setBase64Mode = useWorkspaceStore((s) => s.setBase64Mode);
   const toggleSidebar = useWorkspaceStore((s) => s.toggleSidebar);
@@ -178,8 +180,17 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const [processing, setProcessing] = useState(false);
   const [splitPercent, setSplitPercent] = useState(50);
   const [isDragOver, setIsDragOver] = useState(false);
+  const [shakeTrigger, setShakeTrigger] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+
+  useEffect(() => {
+    if (error) {
+      setShakeTrigger(true);
+      const t = setTimeout(() => setShakeTrigger(false), 450);
+      return () => clearTimeout(t);
+    }
+  }, [error]);
 
   const isTwoPanelDiff = toolId === 'json-diff' || toolId === 'json-compare';
   const runTool = useCallback(() => {
@@ -310,44 +321,49 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   if (!tool) return <div className="p-4 text-dt-error">Unknown tool: {toolId}</div>;
 
   const isJsonTool = toolId.startsWith('json');
+  const inputByteSize = new TextEncoder().encode(input).length;
+  const inputLines = input ? input.split(/\n/).length : 0;
+  const validationStatus = error ? 'Invalid' : output ? 'Valid' : '—';
 
   return (
     <div
-      className="flex flex-col h-full relative"
+      className={`flex flex-col h-full relative ${isTwoPanelDiff ? 'px-3 pb-3 pt-0' : 'p-3 gap-3'}`}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
       {/* Drag overlay */}
       {isDragOver && (
-        <div className="absolute inset-0 z-50 bg-dt-accent/10 border-2 border-dashed border-dt-accent rounded-lg flex items-center justify-center">
-          <span className="text-lg font-semibold text-dt-accent">Drop file to load</span>
+        <div className="absolute inset-0 z-50 bg-dt-card/70 border-2 border-dashed border-dt-border rounded-dt-lg flex items-center justify-center backdrop-blur-sm">
+          <span className="text-lg font-semibold text-dt-text-muted">Drop file to load</span>
         </div>
       )}
 
-      {/* Unified toolbar row (header + toolbar merged) */}
-      <Toolbar
-        toolId={toolId}
-        onRun={runTool}
-        processing={processing}
-        toolName={tool.name}
-        toolIcon={tool.icon}
-        base64Mode={base64Mode}
-        setBase64Mode={setBase64Mode}
-        isJsonTool={isJsonTool}
-      />
+      {/* Toolbar (hidden for JSON Diff — uses own summary bar) */}
+      {!isTwoPanelDiff && (
+        <Toolbar
+          toolId={toolId}
+          onRun={runTool}
+          processing={processing}
+          toolName={tool.name}
+          toolIcon={tool.icon}
+          base64Mode={base64Mode}
+          setBase64Mode={setBase64Mode}
+          isJsonTool={isJsonTool}
+        />
+      )}
 
       {/* Panel fullscreen: show only input or only output with exit button */}
       {panelFullscreen === 'input' && (
-        <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-dt-surface border-b border-dt-border shrink-0">
+        <div className="flex flex-col flex-1 min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-dt-surface border-b border-dt-border shrink-0">
             <span className="text-sm font-medium text-dt-text">Input — Fullscreen</span>
             <button
               onClick={() => setPanelFullscreen('none')}
-              className="text-sm font-medium px-3 py-1 rounded-lg bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white border border-dt-accent/50 transition-colors"
+              className="text-sm font-medium px-3 py-1.5 rounded-xl border border-dt-border bg-dt-card text-dt-text-muted hover:text-dt-text hover:bg-dt-soft transition-all duration-200"
               title="Exit fullscreen"
             >
-              ⊟ Exit fullscreen
+              Exit fullscreen
             </button>
           </div>
           <div className="flex-1 min-h-0">
@@ -357,15 +373,15 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
       )}
 
       {panelFullscreen === 'output' && (
-        <div className="flex flex-col flex-1 min-h-0">
-          <div className="flex items-center justify-between px-3 py-1.5 bg-dt-surface border-b border-dt-border shrink-0">
+        <div className="flex flex-col flex-1 min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel">
+          <div className="flex items-center justify-between px-4 py-2.5 bg-dt-surface border-b border-dt-border shrink-0">
             <span className="text-sm font-medium text-dt-text">Output — Fullscreen</span>
             <button
               onClick={() => setPanelFullscreen('none')}
-              className="text-sm font-medium px-3 py-1 rounded-lg bg-dt-accent/20 text-dt-accent hover:bg-dt-accent hover:text-white border border-dt-accent/50 transition-colors"
+              className="text-sm font-medium px-3 py-1.5 rounded-xl border border-dt-border bg-dt-card text-dt-text-muted hover:text-dt-text hover:bg-dt-soft transition-all duration-200"
               title="Exit fullscreen"
             >
-              ⊟ Exit fullscreen
+              Exit fullscreen
             </button>
           </div>
           <div className="flex-1 min-h-0">
@@ -374,59 +390,49 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
         </div>
       )}
 
-      {/* Split panels — json-diff / json-compare: side-by-side inputs + output below; else: input | output */}
+      {/* JSON Diff/Compare: Git-style inline diff using global theme */}
       {panelFullscreen === 'none' && isTwoPanelDiff ? (
-        <div className="flex flex-1 flex-col min-h-0">
-          <div className="flex flex-1 min-h-0 border-b border-dt-border">
-            <div className="flex-1 min-w-0 flex flex-col border-r border-dt-border">
-              <div className="px-2 py-1 text-[10px] text-dt-text-dim uppercase border-b border-dt-border bg-dt-surface">Left JSON</div>
-              <div className="flex-1 min-h-0 shadow-[inset_2px_0_8px_rgba(0,0,0,0.15)]">
-                <MonacoWrapper toolId={toolId} language="json" variant="left" />
-              </div>
-            </div>
-            <div className="flex-1 min-w-0 flex flex-col">
-              <div className="px-2 py-1 text-[10px] text-dt-text-dim uppercase border-b border-dt-border bg-dt-surface">Right JSON</div>
-              <div className="flex-1 min-h-0">
-                <MonacoWrapper toolId={toolId} language="json" variant="right" />
-              </div>
-            </div>
-          </div>
-          <div className="h-[40%] min-h-[120px] flex flex-col border-t border-dt-border">
-            <div className="px-2 py-1 text-[10px] text-dt-text-dim uppercase border-b border-dt-border bg-dt-surface">Differences</div>
-            <div className="flex-1 min-h-0">
-              <OutputPanel toolId={toolId} error={error} outputLanguage="text" />
-            </div>
-          </div>
+        <div className="flex flex-1 flex-col min-h-[70vh] min-w-0">
+          <JsonDiffView toolId={toolId} />
         </div>
       ) : panelFullscreen === 'none' && inputOptional ? (
         <div className="flex-1 min-h-0 flex flex-col">
           <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} showOutputOnlyHint />
         </div>
       ) : panelFullscreen === 'none' ? (
-        <div ref={containerRef} className="flex flex-1 min-h-0">
-          <div style={{ width: `${splitPercent}%` }} className="min-w-0 shadow-[inset_2px_0_8px_rgba(0,0,0,0.15)]">
+        <div ref={containerRef} className={`flex flex-1 min-h-0 min-w-0 ${shakeTrigger ? 'animate-shake' : ''}`}>
+          <div style={{ width: `${splitPercent}%` }} className="min-w-0 min-h-0 flex flex-col">
             <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
           </div>
           <div className="resizer" onMouseDown={onMouseDown} />
-          <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0">
+          <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 min-h-0 flex flex-col">
             <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} />
           </div>
         </div>
       ) : null}
 
       {/* Multi-convert bar (for JSON tools) */}
-      {isJsonTool && input && (
-        <div className="flex items-center gap-2 px-3 h-9 bg-dt-surface border-t border-dt-border shrink-0">
-          <span className="text-[10px] text-dt-text-dim uppercase tracking-wider mr-1">Convert to:</span>
+      {isJsonTool && !isTwoPanelDiff && input && (
+        <div className="sticky bottom-0 z-20 flex items-center gap-2 px-4 py-2 bg-dt-surface/95 backdrop-blur-dt-sm border border-dt-border rounded-dt-lg shrink-0">
+          <span className="text-[10px] text-dt-text-dim uppercase tracking-wider mr-2">Convert to:</span>
           {CONVERT_TARGETS.map((t) => (
             <button
               key={t.id}
               onClick={() => handleMultiConvert(t.processor)}
-              className="text-xs px-2.5 py-1 rounded bg-dt-bg border border-dt-border text-dt-text-muted hover:text-dt-text hover:border-dt-accent transition-colors"
+              className="text-xs px-3 py-1.5 rounded-xl bg-dt-card border border-dt-border text-dt-text-muted hover:text-dt-text hover:bg-dt-soft transition-all duration-200"
             >
               {t.label}
             </button>
           ))}
+        </div>
+      )}
+
+      {/* Sticky bottom status bar (hidden for diff tools) */}
+      {!isTwoPanelDiff && (
+        <div className="flex items-center gap-6 px-4 py-2 h-9 bg-dt-surface border border-dt-border rounded-dt-lg shrink-0 text-xs text-dt-text-muted font-mono">
+          <span>Size: {inputByteSize.toLocaleString()} bytes</span>
+          <span>Lines: {inputLines}</span>
+          {isJsonTool && <span className={error ? 'text-dt-error' : 'text-dt-success'}>{validationStatus}</span>}
         </div>
       )}
 

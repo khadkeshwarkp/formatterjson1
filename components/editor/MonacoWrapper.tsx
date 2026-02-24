@@ -4,6 +4,7 @@ import { useRef, useCallback, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useWorkspaceStore } from '@/lib/store';
 import { getInputPlaceholder } from '@/lib/input-placeholders';
+import { defineWorkspaceMonacoThemes, getMonacoTheme } from '@/lib/monaco-theme';
 
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -11,7 +12,6 @@ interface MonacoWrapperProps {
   toolId: string;
   language?: string;
   onChange?: (value: string) => void;
-  /** For dual-input tools (e.g. json-diff): bind to second input */
   variant?: 'left' | 'right';
 }
 
@@ -21,7 +21,7 @@ function PlaceholderText({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <strong key={i} className="font-semibold text-dt-accent">
+          <strong key={i} className="font-semibold text-dt-text">
             {p}
           </strong>
         ) : (
@@ -67,55 +67,54 @@ export default function MonacoWrapper({ toolId, language = 'json', onChange, var
   }, []);
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="relative z-20 flex items-center justify-end gap-2 px-2 py-1 bg-dt-surface border-b border-dt-border shrink-0 pointer-events-auto">
+    <div className="flex flex-col h-full min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
+      <div className="relative z-20 flex items-center justify-end gap-2 px-3 py-2.5 bg-dt-surface border-b border-dt-border shrink-0 sticky top-0">
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSearch(); }}
-          className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent hover:bg-dt-bg transition-colors flex items-center gap-1 cursor-pointer"
+          className="text-sm text-dt-text-muted hover:text-dt-text px-3 py-1.5 rounded-xl border border-dt-border hover:bg-dt-soft bg-dt-card transition-all duration-200 flex items-center gap-1.5 cursor-pointer"
           title="Search (Ctrl+F)"
         >
-          🔍 Search
+          Search
         </button>
         <button
           type="button"
           onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPanelFullscreen(panelFullscreen === 'input' ? 'none' : 'input'); }}
-          className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent hover:bg-dt-bg transition-colors cursor-pointer"
+          className="text-sm text-dt-text-muted hover:text-dt-text px-3 py-1.5 rounded-xl border border-dt-border hover:bg-dt-soft bg-dt-card transition-all duration-200 cursor-pointer"
           title={panelFullscreen === 'input' ? 'Exit fullscreen' : 'Fullscreen input panel'}
         >
-          {panelFullscreen === 'input' ? '⊟ Exit fullscreen' : '⊞ Fullscreen'}
+          {panelFullscreen === 'input' ? 'Exit' : 'Fullscreen'}
         </button>
       </div>
       <div className="flex-1 min-h-0 relative z-0">
-        {showPlaceholder && (
-          <div
-            className="absolute inset-0 flex items-start pt-3 px-4 pointer-events-none z-10 text-sm text-dt-text-muted leading-relaxed"
-            aria-hidden
-          >
-            <PlaceholderText text={placeholder} />
-          </div>
-        )}
+        <div
+          className={`absolute inset-0 flex items-center justify-center px-8 text-center pointer-events-none z-10 text-sm text-dt-text-muted leading-relaxed transition-opacity duration-200 ${showPlaceholder ? 'opacity-100' : 'opacity-0'}`}
+          aria-hidden
+        >
+          <PlaceholderText text={placeholder} />
+        </div>
         <Editor
           height="100%"
           language={language}
           value={value}
           onChange={handleChange}
+          beforeMount={defineWorkspaceMonacoThemes}
           onMount={(editor) => {
             editorRef.current = editor;
             editor.onDidFocusEditorText(() => setFocused(true));
             editor.onDidBlurEditorText(() => setFocused(false));
           }}
-          theme={theme === 'dark' ? 'vs-dark' : 'light'}
+          theme={getMonacoTheme(theme)}
           options={{
             fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-            fontSize: 16,
+            fontSize: 15,
             minimap: { enabled: false },
             bracketPairColorization: { enabled: true },
             automaticLayout: true,
             scrollBeyondLastLine: false,
             tabSize: 2,
             wordWrap: 'on',
-            padding: { top: 8 },
+            padding: { top: 14, bottom: 16 },
             lineNumbersMinChars: 3,
             renderLineHighlight: 'gutter',
           }}

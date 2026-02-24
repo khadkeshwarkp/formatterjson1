@@ -12,7 +12,7 @@ interface WorkspaceState {
   activeTool: string;
   openTabs: string[];
   toolData: Record<string, ToolData>;
-  theme: 'light' | 'dark';
+  theme: 'light' | 'dark' | 'black';
   sidebarCollapsed: boolean;
   recentTools: string[];
   favoriteTools: string[];
@@ -50,7 +50,7 @@ export const useWorkspaceStore = create<WorkspaceState>()(
       activeTool: 'json-formatter',
       openTabs: ['json-formatter'],
       toolData: {},
-      theme: 'dark',
+      theme: 'light',
       sidebarCollapsed: false,
       recentTools: [],
       favoriteTools: [],
@@ -116,7 +116,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         })),
 
       toggleTheme: () =>
-        set((s) => ({ theme: s.theme === 'dark' ? 'light' : 'dark' })),
+        set((s) => ({
+          theme: s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'black' : 'light',
+        })),
 
       toggleSidebar: () =>
         set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),

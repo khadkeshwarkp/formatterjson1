@@ -32,13 +32,16 @@ export function jsonDiffTwo(leftStr: string, rightStr: string): ProcessResult {
     const right = JSON.parse(rightStr);
     const lines: string[] = [];
     const diff = compareValues(left, right, '');
-    if (diff.added.length === 0 && diff.removed.length === 0 && diff.changed.length === 0) {
+    if (diff.added.length === 0 && diff.removed.length === 0 && diff.changed.length === 0 && diff.typeMismatches.length === 0) {
       return { output: '✓ No differences — both JSON objects are identical', error: null, errorLine: null };
     }
     diff.added.forEach(({ path, value }) => lines.push(`+ ${path}: ${formatValue(value)}`));
     diff.removed.forEach(({ path, value }) => lines.push(`- ${path}: ${formatValue(value)}`));
     diff.changed.forEach(({ path, oldVal, newVal }) =>
       lines.push(`~ ${path}:\n    - ${formatValue(oldVal)}\n    + ${formatValue(newVal)}`)
+    );
+    diff.typeMismatches.forEach(({ path, leftType, rightType, oldVal, newVal }) =>
+      lines.push(`! ${path} (type mismatch: ${leftType} → ${rightType}):\n    - ${formatValue(oldVal)}\n    + ${formatValue(newVal)}`)
     );
     return { output: lines.join('\n'), error: null, errorLine: null };
   } catch (e) {
@@ -53,28 +56,42 @@ function formatValue(v: unknown): string {
   return String(v);
 }
 
-interface DiffResult {
+export interface DiffResult {
   added: { path: string; value: unknown }[];
   removed: { path: string; value: unknown }[];
   changed: { path: string; oldVal: unknown; newVal: unknown }[];
+  typeMismatches: { path: string; leftType: string; rightType: string; oldVal: unknown; newVal: unknown }[];
 }
 
 function compareValues(left: unknown, right: unknown, path: string): DiffResult {
-  const result: DiffResult = { added: [], removed: [], changed: [] };
+  const result: DiffResult = { added: [], removed: [], changed: [], typeMismatches: [] };
+  const leftType = Array.isArray(left) ? 'array' : left === null ? 'null' : typeof left;
+  const rightType = Array.isArray(right) ? 'array' : right === null ? 'null' : typeof right;
+  const currentPath = path || 'root';
+  if (leftType !== rightType) {
+    result.typeMismatches.push({
+      path: currentPath,
+      leftType,
+      rightType,
+      oldVal: left,
+      newVal: right,
+    });
+    return result;
+  }
   if (typeof left !== 'object' || left === null || Array.isArray(left)) {
     if (typeof right !== 'object' || right === null || Array.isArray(right)) {
       if (JSON.stringify(left) !== JSON.stringify(right)) {
-        result.changed.push({ path: path || 'root', oldVal: left, newVal: right });
+        result.changed.push({ path: currentPath, oldVal: left, newVal: right });
       }
     } else {
-      result.removed.push({ path: path || 'root', value: left });
-      result.added.push({ path: path || 'root', value: right });
+      result.removed.push({ path: currentPath, value: left });
+      result.added.push({ path: currentPath, value: right });
     }
     return result;
   }
   if (typeof right !== 'object' || right === null || Array.isArray(right)) {
-    result.removed.push({ path: path || 'root', value: left });
-    result.added.push({ path: path || 'root', value: right });
+    result.removed.push({ path: currentPath, value: left });
+    result.added.push({ path: currentPath, value: right });
     return result;
   }
   const leftObj = left as Record<string, unknown>;
@@ -95,6 +112,7 @@ function compareValues(left: unknown, right: unknown, path: string): DiffResult 
           result.added.push(...nested.added);
           result.removed.push(...nested.removed);
           result.changed.push(...nested.changed);
+          result.typeMismatches.push(...nested.typeMismatches);
         } else {
           result.changed.push({ path: p, oldVal: l, newVal: r });
         }
@@ -102,6 +120,23 @@ function compareValues(left: unknown, right: unknown, path: string): DiffResult 
     }
   }
   return result;
+}
+
+/** Returns structured diff for JSON Diff UI (counts, navigation). */
+export function getJsonDiffStructured(
+  leftStr: string,
+  rightStr: string
+): DiffResult | { error: string } {
+  try {
+    if (!leftStr.trim() && !rightStr.trim()) return { added: [], removed: [], changed: [], typeMismatches: [] };
+    if (!leftStr.trim()) return { error: 'Paste JSON in the left panel' };
+    if (!rightStr.trim()) return { error: 'Paste JSON in the right panel' };
+    const left = JSON.parse(leftStr);
+    const right = JSON.parse(rightStr);
+    return compareValues(left, right, '');
+  } catch (e) {
+    return { error: e instanceof Error ? e.message : String(e) };
+  }
 }
 
 // ─── JSON Formatter ──────────────────────────────────────────────

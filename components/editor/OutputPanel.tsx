@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { useWorkspaceStore } from '@/lib/store';
 import { copyToClipboard, downloadText } from '@/lib/utils';
 import { getOutputPlaceholder } from '@/lib/input-placeholders';
+import { defineWorkspaceMonacoThemes, getMonacoTheme } from '@/lib/monaco-theme';
 
 const Editor = dynamic(() => import('@monaco-editor/react'), { ssr: false });
 
@@ -14,7 +15,7 @@ function OutputPlaceholderText({ text }: { text: string }) {
     <>
       {parts.map((p, i) =>
         i % 2 === 1 ? (
-          <strong key={i} className="font-semibold text-dt-accent">
+          <strong key={i} className="font-semibold text-dt-text">
             {p}
           </strong>
         ) : (
@@ -29,7 +30,6 @@ interface OutputPanelProps {
   toolId: string;
   error?: string | null;
   outputLanguage?: string;
-  /** When true, show a hint that input is optional (output-only layout). */
   showOutputOnlyHint?: boolean;
 }
 
@@ -119,7 +119,6 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
 
   const handleFormatXml = () => {
     if (!output) return;
-    // Simple XML formatter: add indentation
     let formatted = '';
     let indent = 0;
     const parts = output.replace(/>\s*</g, '>\n<').split('\n');
@@ -136,7 +135,6 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
     addToast('XML formatted', 'success');
   };
 
-  // Determine Monaco language for output
   const monacoLang =
     isXml ? 'xml'
     : outputLanguage === 'text' ? 'plaintext'
@@ -147,92 +145,61 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
   const showOutputPlaceholder = !error && !output.trim();
   const outputPlaceholder = getOutputPlaceholder(toolId);
 
+  const panelBtnClass =
+    'text-sm text-dt-text-muted hover:text-dt-text px-3 py-1.5 rounded-xl border border-dt-border hover:bg-dt-soft bg-dt-card transition-all duration-200';
+
   return (
-    <div className="flex flex-col h-full bg-dt-bg">
+    <div className="flex flex-col h-full min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
       {showOutputOnlyHint && (
-        <div className="shrink-0 px-3 py-2 bg-dt-surface/80 border-b border-dt-border text-sm text-dt-text-muted">
+        <div className="shrink-0 px-4 py-2.5 bg-dt-surface border-b border-dt-border text-sm text-dt-text-muted">
           <OutputPlaceholderText text={outputPlaceholder} />
         </div>
       )}
-      {/* Toolbar */}
-      <div className="relative z-20 flex items-center gap-2 px-3 h-9 bg-dt-surface border-b border-dt-border shrink-0 pointer-events-auto">
+      <div className="relative z-20 flex items-center gap-2 px-3 py-2.5 min-h-12 bg-dt-surface border-b border-dt-border shrink-0 sticky top-0">
         <span className="text-sm font-medium text-dt-text-muted mr-auto">Output</span>
         {!error && !treeView && (
           <>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSearchOutput(); }}
-              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors flex items-center gap-1 cursor-pointer"
-              title="Search (Ctrl+F)"
-            >
-              🔍 Search
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleSearchOutput(); }} className={panelBtnClass} title="Search (Ctrl+F)">
+              Search
             </button>
-            <button
-              type="button"
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPanelFullscreen(panelFullscreen === 'output' ? 'none' : 'output'); }}
-              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors cursor-pointer"
-              title={panelFullscreen === 'output' ? 'Exit fullscreen' : 'Fullscreen output panel'}
-            >
-              {panelFullscreen === 'output' ? '⊟ Exit fullscreen' : '⊞ Fullscreen'}
+            <button type="button" onClick={(e) => { e.preventDefault(); e.stopPropagation(); setPanelFullscreen(panelFullscreen === 'output' ? 'none' : 'output'); }} className={panelBtnClass} title={panelFullscreen === 'output' ? 'Exit fullscreen' : 'Fullscreen output panel'}>
+              {panelFullscreen === 'output' ? 'Exit' : 'Fullscreen'}
             </button>
           </>
         )}
         {isXml && output && (
           <>
-            <button
-              onClick={handleFormatXml}
-              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-            >
-              Format
-            </button>
-            <button
-              onClick={handleMinifyXml}
-              className="text-sm text-dt-text-muted hover:text-dt-text px-2.5 py-1 rounded-md border border-dt-border hover:border-dt-accent bg-dt-bg transition-colors"
-            >
-              Minify
-            </button>
+            <button onClick={handleFormatXml} className={panelBtnClass}>Format</button>
+            <button onClick={handleMinifyXml} className={panelBtnClass}>Minify</button>
           </>
         )}
         {canTreeView && (
           <button
             onClick={() => setTreeView(!treeView)}
-            className={`text-sm px-2.5 py-1 rounded-md border transition-colors ${
-              treeView
-                ? 'bg-dt-accent text-white border-dt-accent'
-                : 'text-dt-text-muted hover:text-dt-text bg-dt-bg border-dt-border hover:border-dt-accent'
+            className={`text-sm px-3 py-1.5 rounded-xl border transition-all duration-200 ${
+              treeView ? 'bg-dt-soft text-dt-text border-dt-border' : panelBtnClass
             }`}
           >
             Tree
           </button>
         )}
-        <button
-          onClick={handleCopy}
-          disabled={!output}
-          className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border bg-dt-bg hover:border-dt-accent transition-colors"
-        >
-          {copied ? '✓ Copied' : 'Copy'}
+        <button onClick={handleCopy} disabled={!output} className={`${panelBtnClass} disabled:opacity-30`}>
+          {copied ? 'Copied' : 'Copy'}
         </button>
-        <button
-          onClick={handleDownload}
-          disabled={!output}
-          className="text-sm text-dt-text-muted hover:text-dt-text disabled:opacity-30 px-2.5 py-1 rounded-md border border-dt-border bg-dt-bg hover:border-dt-accent transition-colors"
-        >
+        <button onClick={handleDownload} disabled={!output} className={`${panelBtnClass} disabled:opacity-30`}>
           Download
         </button>
       </div>
 
-      {/* Content */}
       <div className="flex-1 min-h-0 relative">
-        {showOutputPlaceholder && !showOutputOnlyHint && (
-          <div
-            className="absolute inset-0 flex items-start pt-3 px-4 pointer-events-none z-10 text-sm text-dt-text-muted leading-relaxed"
-            aria-hidden
-          >
-            <OutputPlaceholderText text={outputPlaceholder} />
-          </div>
-        )}
+        <div
+          className={`absolute inset-0 flex items-center justify-center px-8 text-center pointer-events-none z-10 text-sm text-dt-text-muted leading-relaxed transition-opacity duration-200 ${showOutputPlaceholder && !showOutputOnlyHint ? 'opacity-100' : 'opacity-0'}`}
+          aria-hidden
+        >
+          <OutputPlaceholderText text={outputPlaceholder} />
+        </div>
         {error ? (
-          <div className="p-3 text-dt-error whitespace-pre-wrap font-mono text-sm">{error}</div>
+          <div className="p-4 text-dt-error whitespace-pre-wrap font-mono text-sm">{error}</div>
         ) : treeView && parsedTree !== null ? (
           <div className="overflow-auto h-full p-3 font-mono text-sm">
             <TreeNode data={parsedTree} label="root" depth={0} />
@@ -242,18 +209,19 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
             height="100%"
             language={monacoLang}
             value={output}
+            beforeMount={defineWorkspaceMonacoThemes}
             onMount={(editor) => { outputEditorRef.current = editor; }}
-            theme={theme === 'dark' ? 'vs-dark' : 'light'}
+            theme={getMonacoTheme(theme)}
             options={{
               readOnly: true,
               fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-              fontSize: 16,
+              fontSize: 15,
               minimap: { enabled: false },
               automaticLayout: true,
               scrollBeyondLastLine: false,
               tabSize: 2,
               wordWrap: 'on',
-              padding: { top: 8 },
+              padding: { top: 14, bottom: 16 },
               lineNumbersMinChars: 3,
               renderLineHighlight: 'none',
               domReadOnly: false,
@@ -265,7 +233,6 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
   );
 }
 
-// ─── Recursive Tree View ─────────────────────────────────────────
 function TreeNode({
   data,
   label,
@@ -280,25 +247,17 @@ function TreeNode({
   if (data === null) {
     return (
       <div style={{ paddingLeft: depth * 16 }} className="flex items-center gap-1 py-0.5">
-        <span className="text-dt-accent">{label}:</span>
+        <span className="text-dt-text">{label}:</span>
         <span className="text-dt-text-dim">null</span>
       </div>
     );
   }
 
   if (typeof data !== 'object') {
-    const color =
-      typeof data === 'string'
-        ? 'text-green-400'
-        : typeof data === 'number'
-          ? 'text-pink-400'
-          : typeof data === 'boolean'
-            ? 'text-yellow-400'
-            : 'text-dt-text';
     return (
       <div style={{ paddingLeft: depth * 16 }} className="flex items-center gap-1 py-0.5">
-        <span className="text-dt-accent">{label}:</span>
-        <span className={color}>
+        <span className="text-dt-text">{label}:</span>
+        <span className="text-dt-text-muted">
           {typeof data === 'string' ? `"${data}"` : String(data)}
         </span>
       </div>
@@ -313,11 +272,11 @@ function TreeNode({
   return (
     <div style={{ paddingLeft: depth * 16 }}>
       <div
-        className="flex items-center gap-1 py-0.5 cursor-pointer hover:bg-dt-surface/50 rounded"
+        className="flex items-center gap-1 py-0.5 cursor-pointer hover:bg-dt-soft/70 rounded"
         onClick={() => setExpanded(!expanded)}
       >
         <span className="text-dt-text-dim text-[10px] w-3">{expanded ? '▼' : '▶'}</span>
-        <span className="text-dt-accent">{label}:</span>
+        <span className="text-dt-text">{label}:</span>
         <span className="text-dt-text-dim text-xs">
           {bracket[0]} {entries.length} {entries.length === 1 ? 'item' : 'items'} {bracket[1]}
         </span>
