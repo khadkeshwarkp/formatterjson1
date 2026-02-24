@@ -149,7 +149,7 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
     'text-sm text-dt-text-muted hover:text-dt-text px-3 py-1.5 rounded-xl border border-dt-border hover:bg-dt-soft bg-dt-card transition-all duration-200';
 
   return (
-    <div className="flex flex-col h-full min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
+    <div className="flex flex-col h-full rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
       {showOutputOnlyHint && (
         <div className="shrink-0 px-4 py-2.5 bg-dt-surface border-b border-dt-border text-sm text-dt-text-muted">
           <OutputPlaceholderText text={outputPlaceholder} />

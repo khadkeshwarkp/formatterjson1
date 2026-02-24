@@ -67,7 +67,7 @@ export default function MonacoWrapper({ toolId, language = 'json', onChange, var
   }, []);
 
   return (
-    <div className="flex flex-col h-full min-h-[70vh] rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
+    <div className="flex flex-col h-full rounded-dt-lg overflow-hidden bg-dt-card/92 backdrop-blur-dt border border-dt-border shadow-dt-panel transition-all duration-200 hover:shadow-dt-soft focus-within:shadow-dt-soft">
       <div className="relative z-20 flex items-center justify-end gap-2 px-3 py-2.5 bg-dt-surface border-b border-dt-border shrink-0 sticky top-0">
         <button
           type="button"

@@ -413,7 +413,7 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
 
       {/* Multi-convert bar (for JSON tools) */}
       {isJsonTool && !isTwoPanelDiff && input && (
-        <div className="sticky bottom-0 z-20 flex items-center gap-2 px-4 py-2 bg-dt-surface/95 backdrop-blur-dt-sm border border-dt-border rounded-dt-lg shrink-0">
+        <div className="flex items-center gap-2 px-4 py-2 bg-dt-surface border border-dt-border rounded-dt-lg shrink-0">
           <span className="text-[10px] text-dt-text-dim uppercase tracking-wider mr-2">Convert to:</span>
           {CONVERT_TARGETS.map((t) => (
             <button
