@@ -40,6 +40,11 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  icons: {
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -50,10 +55,10 @@ export const metadata: Metadata = {
       'JSON formatter, validator, minifier, converter & Base64 tools. Fast, private, 100% browser-based.',
     images: [
       {
-        url: '/og-image.png',
-        width: 1200,
-        height: 630,
-        alt: 'DevTools Workspace',
+        url: '/logo.png',
+        width: 654,
+        height: 496,
+        alt: 'DevTools Workspace Logo',
       },
     ],
   },
@@ -62,7 +67,7 @@ export const metadata: Metadata = {
     title: 'DevTools Workspace — Free Online Developer Tools',
     description:
       'JSON formatter, validator, minifier, converter & Base64 tools. Fast, private, 100% browser-based.',
-    images: ['/og-image.png'],
+    images: ['/logo.png'],
   },
   alternates: {
     canonical: SITE_URL,
