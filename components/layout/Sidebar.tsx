@@ -46,7 +46,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="m-3 mr-0 flex flex-col w-[260px] bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border flex-shrink-0 rounded-dt-lg shadow-dt-panel">
+    <aside className="m-3 mr-0 flex flex-col w-[240px] bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border flex-shrink-0 rounded-dt-lg shadow-dt-panel">
       <div className="flex items-center justify-between px-4 h-12 border-b border-dt-border">
         <span className="text-sm font-semibold text-dt-text tracking-wide">DevTools</span>
         <button

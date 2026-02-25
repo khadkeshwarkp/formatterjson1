@@ -27,7 +27,7 @@ export default function TabBar() {
               window.history.pushState(null, '', tool.route);
             }}
           >
-            <span className="font-mono text-[10px] w-5 text-center">{tool.icon}</span>
+            <span className="font-mono text-[8px] w-5 text-center">{tool.icon}</span>
             <span className="font-medium">{tool.name}</span>
             <button
               onClick={(e) => {

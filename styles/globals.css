@@ -105,6 +105,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
+  font-size: 13px;
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--dt-bg);
@@ -256,4 +257,103 @@ a,
 
 .monaco-editor .overflowingContentWidgets .monaco-editor .find-widget {
   pointer-events: auto !important;
+}
+
+/* Blog typography */
+.blog-content {
+  color: var(--dt-text-muted);
+  line-height: 1.7;
+  font-size: 1rem;
+}
+
+.blog-content h2 {
+  color: var(--dt-text);
+  font-size: 1.75rem;
+  line-height: 1.25;
+  font-weight: 700;
+  margin: 2.25rem 0 0.9rem;
+}
+
+.blog-content h3 {
+  color: var(--dt-text);
+  font-size: 1.2rem;
+  line-height: 1.35;
+  font-weight: 650;
+  margin: 1.4rem 0 0.55rem;
+}
+
+.blog-content p,
+.blog-content ul,
+.blog-content ol,
+.blog-content table,
+.blog-content pre {
+  margin: 0.8rem 0 1.1rem;
+}
+
+.blog-content ul,
+.blog-content ol {
+  padding-left: 1.3rem;
+}
+
+.blog-content li {
+  margin: 0.35rem 0;
+}
+
+.blog-content a {
+  color: var(--dt-accent);
+  text-decoration: none;
+}
+
+.blog-content a:hover {
+  text-decoration: underline;
+}
+
+.blog-content code {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 0.9em;
+  color: var(--dt-text);
+  background: var(--dt-soft);
+  border: 1px solid var(--dt-border);
+  padding: 0.08rem 0.35rem;
+  border-radius: 0.4rem;
+}
+
+.blog-content pre {
+  background: var(--dt-card);
+  border: 1px solid var(--dt-border);
+  border-radius: 12px;
+  padding: 0.9rem 1rem;
+  overflow: auto;
+}
+
+.blog-content pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  display: block;
+  white-space: pre;
+}
+
+.blog-content table {
+  width: 100%;
+  border-collapse: collapse;
+  overflow: hidden;
+  border: 1px solid var(--dt-border);
+  border-radius: 12px;
+}
+
+.blog-content thead {
+  background: var(--dt-soft);
+}
+
+.blog-content th,
+.blog-content td {
+  text-align: left;
+  border-bottom: 1px solid var(--dt-border);
+  padding: 0.6rem 0.7rem;
+  font-size: 0.95rem;
+}
+
+.blog-content tr:last-child td {
+  border-bottom: 0;
 }

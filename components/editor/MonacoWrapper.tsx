@@ -123,7 +123,7 @@ export default function MonacoWrapper({ toolId, language = 'json', onChange, var
           theme={getMonacoTheme(theme)}
           options={{
             fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-            fontSize: 15,
+            fontSize: 13,
             minimap: { enabled: false },
             bracketPairColorization: { enabled: true },
             automaticLayout: true,

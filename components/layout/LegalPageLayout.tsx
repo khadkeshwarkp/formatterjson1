@@ -23,6 +23,9 @@ export default function LegalPageLayout({
                 {t.name}
               </Link>
             ))}
+            <Link href="/blog" className="hover:text-dt-text transition-colors hidden sm:inline">
+              Blog
+            </Link>
             <Link href="/json-formatter" className="text-dt-accent hover:underline">
               All Tools →
             </Link>

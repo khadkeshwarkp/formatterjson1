@@ -231,7 +231,7 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
             options={{
               readOnly: true,
               fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-              fontSize: 15,
+              fontSize: 13,
               minimap: { enabled: false },
               automaticLayout: true,
               scrollBeyondLastLine: false,

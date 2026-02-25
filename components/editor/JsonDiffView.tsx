@@ -426,7 +426,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
                 renderOverviewRuler: true,
                 diffWordWrap: 'on',
                 fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
-                fontSize: 14,
+                fontSize: 13,
                 lineNumbers: 'on',
                 minimap: { enabled: false },
                 scrollBeyondLastLine: false,

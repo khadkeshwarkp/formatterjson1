@@ -98,6 +98,12 @@ export default function PlatformHomePage() {
               >
                 Explore All Tools
               </Link>
+              <Link
+                href="/blog"
+                className="px-6 py-3 text-base font-medium rounded-xl border border-dt-border text-dt-text hover:border-dt-accent hover:text-dt-accent transition-colors"
+              >
+                Read Blog
+              </Link>
             </div>
             <form onSubmit={handleSearch} className="max-w-md mx-auto">
               <input

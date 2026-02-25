@@ -3,55 +3,54 @@ import LegalPageLayout from '@/components/layout/LegalPageLayout';
 
 export const metadata: Metadata = {
   title: 'About Us — DevTools Workspace',
-  description: 'Learn about DevTools Workspace — free, privacy-first online developer tools. 100% client-side processing, no data collection.',
+  description: 'About formatterjson.org: privacy-first JSON developer tools for formatting, validation, conversion, and structured diff workflows.',
   alternates: { canonical: 'https://formatterjson.org/about' },
 };
 
 export default function AboutPage() {
   return (
-    <LegalPageLayout title="About DevTools Workspace">
+    <LegalPageLayout title="About formatterjson.org">
       <p>
-        DevTools Workspace is a free collection of online developer tools designed for speed, privacy, and simplicity.
-        Our tools help software developers, data engineers, QA testers, and technical writers work with JSON, XML, Base64,
-        and other data formats without installing any software.
+        formatterjson.org is a developer-focused toolkit for JSON and structured data workflows.
+        We help teams format, validate, compare, and convert JSON, XML, YAML, CSV, and encoded text quickly without installing software.
       </p>
 
-      <h2 className="text-xl font-semibold text-dt-text mt-6">Our Mission</h2>
+      <h2 className="text-xl font-semibold text-dt-text mt-6">Mission</h2>
       <p>
-        We believe developer tools should be fast, free, and private. Every tool on DevTools Workspace processes data
-        entirely in your browser. No data is ever uploaded to a server, stored in a database, or shared with third parties.
-        Your data stays on your machine at all times.
+        Build practical, fast, and privacy-first tools for real engineering work: API debugging, payload validation,
+        migration checks, and format conversions.
       </p>
 
-      <h2 className="text-xl font-semibold text-dt-text mt-6">What We Offer</h2>
+      <h2 className="text-xl font-semibold text-dt-text mt-6">What’s on the Platform</h2>
       <ul className="list-disc list-inside space-y-2">
-        <li><strong>JSON Formatter</strong> — Beautify and pretty-print JSON with proper indentation.</li>
-        <li><strong>JSON Validator</strong> — Check JSON for syntax errors with detailed error messages.</li>
-        <li><strong>JSON Minifier</strong> — Compress JSON by removing whitespace to reduce file size.</li>
-        <li><strong>JSON to XML Converter</strong> — Transform JSON data into well-formed XML.</li>
-        <li><strong>Base64 Encoder/Decoder</strong> — Encode text to Base64 or decode Base64 to plain text.</li>
+        <li><strong>JSON Formatter / Validator / Minifier</strong> for daily API and config workflows.</li>
+        <li><strong>JSON Diff / Compare</strong> with structured change categories and path navigation.</li>
+        <li><strong>Converters</strong> (JSON ↔ CSV/XML/YAML and JSON → language types).</li>
+        <li><strong>Encoding & utility tools</strong> like Base64, URL encode/decode, JWT tools, regex, and hashing.</li>
       </ul>
 
-      <h2 className="text-xl font-semibold text-dt-text mt-6">Technology</h2>
+      <h2 className="text-xl font-semibold text-dt-text mt-6">Recent Improvements</h2>
+      <ul className="list-disc list-inside space-y-2">
+        <li>Global Light / Dark / Black theme system.</li>
+        <li>Refined editor UX with improved readability and layout behavior.</li>
+        <li>Professional JSON Diff interface with filters and navigation.</li>
+        <li>New technical blog content for troubleshooting and best practices.</li>
+      </ul>
+
+      <h2 className="text-xl font-semibold text-dt-text mt-6">Privacy and Processing</h2>
       <p>
-        DevTools Workspace is built with modern web technologies including Next.js, React, TypeScript, and the Monaco Editor
-        (the same editor engine that powers Visual Studio Code). The application is statically generated for maximum
-        performance and served over a global CDN for fast load times worldwide.
+        Data is processed in your browser. We do not store your payloads on our servers.
+        For analytics and ads, controls are governed by consent settings and documented in the{' '}
+        <a href="/privacy" className="text-dt-accent hover:underline">Privacy Policy</a>.
       </p>
 
-      <h2 className="text-xl font-semibold text-dt-text mt-6">Privacy First</h2>
-      <p>
-        We take privacy seriously. All data processing happens in your browser using JavaScript. We do not collect, store,
-        or transmit any data you enter into our tools. We use Google Analytics for aggregate traffic analysis and Google
-        AdSense for advertising, both subject to your consent preferences. See our{' '}
-        <a href="/privacy" className="text-dt-accent hover:underline">Privacy Policy</a> for full details.
-      </p>
-
-      <h2 className="text-xl font-semibold text-dt-text mt-6">Contact</h2>
-      <p>
-        Have questions, suggestions, or feedback? Visit our{' '}
-        <a href="/contact" className="text-dt-accent hover:underline">Contact page</a> to get in touch.
-      </p>
+      <h2 className="text-xl font-semibold text-dt-text mt-6">Resources</h2>
+      <ul className="list-disc list-inside space-y-2">
+        <li><a href="/json-formatter" className="text-dt-accent hover:underline">Start with JSON Formatter</a></li>
+        <li><a href="/json-diff" className="text-dt-accent hover:underline">Open JSON Diff</a></li>
+        <li><a href="/blog" className="text-dt-accent hover:underline">Read the Blog</a></li>
+        <li><a href="/contact" className="text-dt-accent hover:underline">Contact Us</a></li>
+      </ul>
     </LegalPageLayout>
   );
 }

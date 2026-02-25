@@ -7,6 +7,7 @@ export default function SiteFooter() {
       <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <Link href="/about" className="hover:text-dt-accent transition-colors">About</Link>
         <Link href="/contact" className="hover:text-dt-accent transition-colors">Contact</Link>
+        <Link href="/blog" className="hover:text-dt-accent transition-colors">Blog</Link>
         <Link href="/privacy" className="hover:text-dt-accent transition-colors">Privacy</Link>
         <Link href="/terms" className="hover:text-dt-accent transition-colors">Terms</Link>
         <Link href="/disclaimer" className="hover:text-dt-accent transition-colors">Disclaimer</Link>

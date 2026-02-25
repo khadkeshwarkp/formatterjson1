@@ -68,6 +68,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   ];
 
   const legalRoutes = ['/about', '/privacy', '/terms', '/disclaimer', '/contact'];
+  const blogRoutes = [
+    '/blog',
+    '/blog/how-to-fix-invalid-json-errors',
+    '/blog/json-pretty-print-vs-minify',
+    '/blog/json-diff-explained',
+    '/blog/convert-json-to-csv-and-back',
+    '/blog/best-practices-validating-json-online',
+  ];
 
   const lastMod = new Date('2026-02-21');
 
@@ -102,6 +110,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: lastMod,
       changeFrequency: 'monthly' as const,
       priority: route === '/about' || route === '/contact' ? 0.4 : 0.3,
+    })),
+    ...blogRoutes.map((route) => ({
+      url: `${SITE_URL}${route}`,
+      lastModified: lastMod,
+      changeFrequency: 'weekly' as const,
+      priority: route === '/blog' ? 0.75 : 0.7,
     })),
   ];
 }
