@@ -57,14 +57,30 @@ export default function OutputPanel({ toolId, error, outputLanguage = 'json', sh
 
   const outputEditorRef = useRef<unknown>(null);
   const handleSearchOutput = useCallback(() => {
-    const ed = outputEditorRef.current as { focus(): void; getAction(id: string): { run(): void } | null; trigger?(source: string, handlerId: string, payload: unknown): void } | null;
+    const ed = outputEditorRef.current as {
+      focus(): void;
+      getAction(id: string): { run(): void } | null;
+      trigger?(source: string, handlerId: string, payload: unknown): void;
+    } | null;
     if (!ed) return;
     ed.focus();
     requestAnimationFrame(() => {
-      if (ed.trigger) {
-        ed.trigger('keyboard', 'editor.action.startFindReplaceAction', null);
-      } else {
-        ed.getAction('editor.action.startFindReplaceAction')?.run();
+      const actionIds = [
+        'actions.find',
+        'editor.action.startFindAction',
+        'editor.action.startFindReplaceAction',
+      ];
+      let opened = false;
+      for (const id of actionIds) {
+        const action = ed.getAction(id);
+        if (action) {
+          action.run();
+          opened = true;
+          break;
+        }
+      }
+      if (!opened && ed.trigger) {
+        ed.trigger('keyboard', 'actions.find', null);
       }
     });
   }, []);
@@ -247,17 +263,25 @@ function TreeNode({
   if (data === null) {
     return (
       <div style={{ paddingLeft: depth * 16 }} className="flex items-center gap-1 py-0.5">
-        <span className="text-dt-text">{label}:</span>
-        <span className="text-dt-text-dim">null</span>
+        <span style={{ color: 'var(--dt-json-key)' }}>{label}:</span>
+        <span style={{ color: 'var(--dt-json-null)' }}>null</span>
       </div>
     );
   }
 
   if (typeof data !== 'object') {
+    const valueColor =
+      typeof data === 'string'
+        ? 'var(--dt-json-string)'
+        : typeof data === 'number'
+          ? 'var(--dt-json-number)'
+          : typeof data === 'boolean'
+            ? 'var(--dt-json-boolean)'
+            : 'var(--dt-text-muted)';
     return (
       <div style={{ paddingLeft: depth * 16 }} className="flex items-center gap-1 py-0.5">
-        <span className="text-dt-text">{label}:</span>
-        <span className="text-dt-text-muted">
+        <span style={{ color: 'var(--dt-json-key)' }}>{label}:</span>
+        <span style={{ color: valueColor }}>
           {typeof data === 'string' ? `"${data}"` : String(data)}
         </span>
       </div>
@@ -276,7 +300,7 @@ function TreeNode({
         onClick={() => setExpanded(!expanded)}
       >
         <span className="text-dt-text-dim text-[10px] w-3">{expanded ? '▼' : '▶'}</span>
-        <span className="text-dt-text">{label}:</span>
+        <span style={{ color: 'var(--dt-json-key)' }}>{label}:</span>
         <span className="text-dt-text-dim text-xs">
           {bracket[0]} {entries.length} {entries.length === 1 ? 'item' : 'items'} {bracket[1]}
         </span>

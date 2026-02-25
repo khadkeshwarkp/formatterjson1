@@ -54,14 +54,30 @@ export default function MonacoWrapper({ toolId, language = 'json', onChange, var
   };
 
   const handleSearch = useCallback(() => {
-    const ed = editorRef.current as { focus(): void; getAction(id: string): { run(): void } | null; trigger?(source: string, handlerId: string, payload: unknown): void } | null;
+    const ed = editorRef.current as {
+      focus(): void;
+      getAction(id: string): { run(): void } | null;
+      trigger?(source: string, handlerId: string, payload: unknown): void;
+    } | null;
     if (!ed) return;
     ed.focus();
     requestAnimationFrame(() => {
-      if (ed.trigger) {
-        ed.trigger('keyboard', 'editor.action.startFindReplaceAction', null);
-      } else {
-        ed.getAction('editor.action.startFindReplaceAction')?.run();
+      const actionIds = [
+        'actions.find',
+        'editor.action.startFindAction',
+        'editor.action.startFindReplaceAction',
+      ];
+      let opened = false;
+      for (const id of actionIds) {
+        const action = ed.getAction(id);
+        if (action) {
+          action.run();
+          opened = true;
+          break;
+        }
+      }
+      if (!opened && ed.trigger) {
+        ed.trigger('keyboard', 'actions.find', null);
       }
     });
   }, []);

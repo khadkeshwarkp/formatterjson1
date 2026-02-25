@@ -121,6 +121,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           crossOrigin="anonymous"
           strategy="afterInteractive"
         />
+
+        {/* Ahrefs Analytics */}
+        <Script
+          src="https://analytics.ahrefs.com/analytics.js"
+          data-key="eLIwKZ7cKfJi8ZaPw9TGEg"
+          strategy="afterInteractive"
+        />
       </head>
       <body>
         <ThemeProvider>

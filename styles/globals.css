@@ -31,6 +31,11 @@
   --dt-success: #3e8b5b;
   --dt-error: #b16a6a;
   --dt-warning: #9f8051;
+  --dt-json-key: #8f3b3b;
+  --dt-json-string: #1f5ea8;
+  --dt-json-number: #256b3a;
+  --dt-json-boolean: #8a5a1c;
+  --dt-json-null: #6f7782;
 }
 
 .dark {
@@ -55,6 +60,11 @@
   --dt-success: #5f9e79;
   --dt-error: #a87777;
   --dt-warning: #9e865e;
+  --dt-json-key: #d48a8a;
+  --dt-json-string: #8fb4ea;
+  --dt-json-number: #8cc6a0;
+  --dt-json-boolean: #d7b27a;
+  --dt-json-null: #8c919a;
 }
 
 .black {
@@ -79,6 +89,11 @@
   --dt-success: #5b916f;
   --dt-error: #9a6e6e;
   --dt-warning: #8e7754;
+  --dt-json-key: #d89a9a;
+  --dt-json-string: #9abcf0;
+  --dt-json-number: #90caa4;
+  --dt-json-boolean: #d6b07a;
+  --dt-json-null: #8a8e96;
 }
 
 * {
@@ -200,6 +215,24 @@ a,
 .dark .monaco-diff-editor .char-insert,
 .black .monaco-diff-editor .char-insert {
   background: rgba(84, 158, 112, 0.1) !important;
+}
+
+/* Prevent diff decoration classes from leaking into non-diff editors */
+.monaco-editor:not(.inDiffEditor) .line-delete,
+.monaco-editor:not(.inDiffEditor) .char-delete,
+.monaco-editor:not(.inDiffEditor) .line-insert,
+.monaco-editor:not(.inDiffEditor) .char-insert {
+  background: transparent !important;
+  border: 0 !important;
+}
+
+/* Keep normal editor selections neutral and readable */
+.monaco-editor:not(.inDiffEditor) .selected-text {
+  background: rgba(120, 120, 128, 0.22) !important;
+}
+.dark .monaco-editor:not(.inDiffEditor) .selected-text,
+.black .monaco-editor:not(.inDiffEditor) .selected-text {
+  background: rgba(154, 154, 163, 0.26) !important;
 }
 
 .monaco-editor .find-widget,
