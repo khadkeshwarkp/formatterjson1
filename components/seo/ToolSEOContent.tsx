@@ -251,6 +251,15 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
         ))}
       </div>
 
+      <h2 className="text-xl font-semibold mt-8 mb-3">Guides by Search Intent</h2>
+      <div className="flex flex-wrap gap-3 mb-2">
+        <Link href="/errors" className="text-sm text-dt-accent hover:underline">JSON Error Fixes</Link>
+        <Link href="/languages" className="text-sm text-dt-accent hover:underline">Language-Specific Guides</Link>
+        <Link href="/compare" className="text-sm text-dt-accent hover:underline">Tool Comparisons</Link>
+        <Link href="/use-cases" className="text-sm text-dt-accent hover:underline">Developer Use Cases</Link>
+        <Link href="/convert" className="text-sm text-dt-accent hover:underline">Conversion Playbooks</Link>
+      </div>
+
       <SiteFooter />
     </section>
   );

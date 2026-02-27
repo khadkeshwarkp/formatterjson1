@@ -5,6 +5,8 @@ import dynamic from 'next/dynamic';
 import { useWorkspaceStore } from '@/lib/store';
 import { getJsonDiffStructured, type DiffResult } from '@/lib/processors';
 import { defineWorkspaceMonacoThemes, getMonacoDiffTheme } from '@/lib/monaco-theme';
+import { applyTransform } from '@/lib/editor-transforms';
+import UnifiedCompareBridge from './UnifiedCompareBridge';
 
 type DiffCategory = 'addition' | 'deletion' | 'modification' | 'typeMismatch';
 
@@ -50,13 +52,64 @@ const SAMPLE_MODIFIED = `{
   }
 }`;
 
-function tryFormatJson(text: string): string | null {
-  const trimmed = text.trim();
-  if (!trimmed) return text;
+interface TextMatch {
+  line: number;
+  column: number;
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildSearchRegex(
+  query: string,
+  options: { useRegex: boolean; matchCase: boolean; wholeWord: boolean },
+  global = true
+): RegExp {
+  const source = options.useRegex ? query : escapeRegExp(query);
+  const wrapped = options.wholeWord ? `\\b(?:${source})\\b` : source;
+  const flags = `${global ? 'g' : ''}${options.matchCase ? '' : 'i'}`;
+  return new RegExp(wrapped, flags);
+}
+
+function lineColumnFromOffset(text: string, offset: number): { line: number; column: number } {
+  const safe = Math.max(0, Math.min(offset, text.length));
+  const fragment = text.slice(0, safe);
+  const lines = fragment.split('\n');
+  const line = Math.max(1, lines.length);
+  const column = Math.max(1, (lines[lines.length - 1]?.length ?? 0) + 1);
+  return { line, column };
+}
+
+function collectMatches(
+  text: string,
+  query: string,
+  options: { useRegex: boolean; matchCase: boolean; wholeWord: boolean }
+): { matches: TextMatch[]; error: string | null } {
+  if (!query) return { matches: [], error: null };
+
   try {
-    return JSON.stringify(JSON.parse(trimmed), null, 2);
-  } catch {
-    return null;
+    const regex = buildSearchRegex(query, options, true);
+    const matches: TextMatch[] = [];
+    let current = regex.exec(text);
+
+    while (current) {
+      const offset = current.index;
+      const pos = lineColumnFromOffset(text, offset);
+      matches.push({ line: pos.line, column: pos.column });
+      if (current[0].length === 0) {
+        regex.lastIndex += 1;
+      }
+      if (matches.length >= 5000) break;
+      current = regex.exec(text);
+    }
+
+    return { matches, error: null };
+  } catch (error) {
+    return {
+      matches: [],
+      error: error instanceof Error ? error.message : 'Invalid search pattern',
+    };
   }
 }
 
@@ -123,21 +176,49 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
   const [showTypeMismatches, setShowTypeMismatches] = useState(true);
   const [hideUnchanged, setHideUnchanged] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [leftSearchQuery, setLeftSearchQuery] = useState('');
+  const [rightSearchQuery, setRightSearchQuery] = useState('');
+  const [searchRegex, setSearchRegex] = useState(false);
+  const [searchCase, setSearchCase] = useState(false);
+  const [searchWholeWord, setSearchWholeWord] = useState(false);
+  const [activeSearchPane, setActiveSearchPane] = useState<'left' | 'right'>('left');
+  const [leftActiveSearchIndex, setLeftActiveSearchIndex] = useState(-1);
+  const [rightActiveSearchIndex, setRightActiveSearchIndex] = useState(-1);
   const [drawerOpen, setDrawerOpen] = useState(true);
+  const [bridgeOpen, setBridgeOpen] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const [leftFocused, setLeftFocused] = useState(false);
   const [rightFocused, setRightFocused] = useState(false);
+  const leftSearchInputRef = useRef<HTMLInputElement>(null);
+  const rightSearchInputRef = useRef<HTMLInputElement>(null);
+  const lastToolIdRef = useRef(toolId);
+  const originalSeedRef = useRef(input);
+  const modifiedSeedRef = useRef(input2);
+
+  if (lastToolIdRef.current !== toolId) {
+    lastToolIdRef.current = toolId;
+    originalSeedRef.current = input;
+    modifiedSeedRef.current = input2;
+  }
 
   const diffEditorRef = useRef<{
     getLineChanges: () => unknown[];
     getModifiedEditor: () => {
+      getValue?: () => string;
+      setValue?: (value: string) => void;
       revealLine: (line: number) => void;
+      getPosition?: () => { lineNumber: number; column: number } | null;
       setPosition?: (position: { lineNumber: number; column: number }) => void;
       createDecorationsCollection?: (decorations: unknown[]) => { clear: () => void; set: (decorations: unknown[]) => void };
       onDidFocusEditorText?: (cb: () => void) => void;
       onDidBlurEditorText?: (cb: () => void) => void;
     };
     getOriginalEditor: () => {
+      getValue?: () => string;
+      setValue?: (value: string) => void;
       revealLine: (line: number) => void;
+      getPosition?: () => { lineNumber: number; column: number } | null;
       setPosition?: (position: { lineNumber: number; column: number }) => void;
       createDecorationsCollection?: (decorations: unknown[]) => { clear: () => void; set: (decorations: unknown[]) => void };
       onDidFocusEditorText?: (cb: () => void) => void;
@@ -151,6 +232,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
   const diffStructured = useMemo(() => getJsonDiffStructured(input, input2), [input, input2]);
   const isStructured = diffStructured && !('error' in diffStructured);
   const diff = isStructured ? (diffStructured as DiffResult) : null;
+  const parseError = !isStructured ? (diffStructured as { error: string }).error : null;
 
   const addedCount = diff?.added.length ?? 0;
   const removedCount = diff?.removed.length ?? 0;
@@ -172,15 +254,37 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
     [diffItems, showAdditions, showDeletions, showModifications, showTypeMismatches]
   );
 
+  const leftSearchResult = useMemo(
+    () =>
+      collectMatches(input, leftSearchQuery, {
+        useRegex: searchRegex,
+        matchCase: searchCase,
+        wholeWord: searchWholeWord,
+      }),
+    [input, leftSearchQuery, searchCase, searchRegex, searchWholeWord]
+  );
+
+  const rightSearchResult = useMemo(
+    () =>
+      collectMatches(input2, rightSearchQuery, {
+        useRegex: searchRegex,
+        matchCase: searchCase,
+        wholeWord: searchWholeWord,
+      }),
+    [input2, rightSearchQuery, searchCase, searchRegex, searchWholeWord]
+  );
+
   const summaryText = `${totalChanges} changes • ${addedCount} addition${addedCount !== 1 ? 's' : ''} • ${modifiedCount} modification${modifiedCount !== 1 ? 's' : ''} • ${typeMismatchCount} type mismatch${typeMismatchCount !== 1 ? 'es' : ''}`;
 
   const jumpToItem = useCallback((item: DiffItem) => {
     const editor = diffEditorRef.current;
     if (!editor) return;
-    editor.getOriginalEditor().revealLine(item.lineLeft);
-    editor.getModifiedEditor().revealLine(item.lineRight);
-    editor.getOriginalEditor().setPosition?.({ lineNumber: item.lineLeft, column: 1 });
-    editor.getModifiedEditor().setPosition?.({ lineNumber: item.lineRight, column: 1 });
+    const leftLine = Math.max(1, item.lineLeft);
+    const rightLine = Math.max(1, item.lineRight);
+    editor.getOriginalEditor().revealLine(leftLine);
+    editor.getModifiedEditor().revealLine(rightLine);
+    editor.getOriginalEditor().setPosition?.({ lineNumber: leftLine, column: 1 });
+    editor.getModifiedEditor().setPosition?.({ lineNumber: rightLine, column: 1 });
   }, []);
 
   const goToPrev = useCallback(() => {
@@ -197,10 +301,107 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
     jumpToItem(filteredItems[nextIndex]);
   }, [activeIndex, filteredItems, jumpToItem]);
 
+  const jumpToSearchMatch = useCallback((side: 'left' | 'right', match: TextMatch) => {
+    const editor = diffEditorRef.current;
+    if (!editor) return;
+
+    const safeLine = Math.max(1, match.line);
+    const safeColumn = Math.max(1, match.column);
+
+    try {
+      if (side === 'left') {
+        editor.getOriginalEditor().revealLine(safeLine);
+        editor.getOriginalEditor().setPosition?.({ lineNumber: safeLine, column: safeColumn });
+      } else {
+        editor.getModifiedEditor().revealLine(safeLine);
+        editor.getModifiedEditor().setPosition?.({ lineNumber: safeLine, column: safeColumn });
+      }
+    } catch {
+      // Swallow transient Monaco line/cursor exceptions while models refresh.
+    }
+  }, []);
+
+  const goToPrevLeftSearch = useCallback(() => {
+    if (leftSearchResult.matches.length === 0) return;
+    const next =
+      leftActiveSearchIndex <= 0
+        ? leftSearchResult.matches.length - 1
+        : leftActiveSearchIndex - 1;
+    setLeftActiveSearchIndex(next);
+    setActiveSearchPane('left');
+    jumpToSearchMatch('left', leftSearchResult.matches[next]);
+  }, [jumpToSearchMatch, leftActiveSearchIndex, leftSearchResult.matches]);
+
+  const goToNextLeftSearch = useCallback(() => {
+    if (leftSearchResult.matches.length === 0) return;
+    const next =
+      leftActiveSearchIndex >= leftSearchResult.matches.length - 1
+        ? 0
+        : leftActiveSearchIndex + 1;
+    setLeftActiveSearchIndex(next);
+    setActiveSearchPane('left');
+    jumpToSearchMatch('left', leftSearchResult.matches[next]);
+  }, [jumpToSearchMatch, leftActiveSearchIndex, leftSearchResult.matches]);
+
+  const goToPrevRightSearch = useCallback(() => {
+    if (rightSearchResult.matches.length === 0) return;
+    const next =
+      rightActiveSearchIndex <= 0
+        ? rightSearchResult.matches.length - 1
+        : rightActiveSearchIndex - 1;
+    setRightActiveSearchIndex(next);
+    setActiveSearchPane('right');
+    jumpToSearchMatch('right', rightSearchResult.matches[next]);
+  }, [jumpToSearchMatch, rightActiveSearchIndex, rightSearchResult.matches]);
+
+  const goToNextRightSearch = useCallback(() => {
+    if (rightSearchResult.matches.length === 0) return;
+    const next =
+      rightActiveSearchIndex >= rightSearchResult.matches.length - 1
+        ? 0
+        : rightActiveSearchIndex + 1;
+    setRightActiveSearchIndex(next);
+    setActiveSearchPane('right');
+    jumpToSearchMatch('right', rightSearchResult.matches[next]);
+  }, [jumpToSearchMatch, rightActiveSearchIndex, rightSearchResult.matches]);
+
+  const focusSearchInput = useCallback((side?: 'left' | 'right') => {
+    const targetSide = side ?? (rightFocused && !leftFocused ? 'right' : 'left');
+    setActiveSearchPane(targetSide);
+    requestAnimationFrame(() => {
+      const targetRef = targetSide === 'left' ? leftSearchInputRef : rightSearchInputRef;
+      targetRef.current?.focus();
+      targetRef.current?.select();
+    });
+  }, [leftFocused, rightFocused]);
+
   const loadExample = useCallback(() => {
     setInput(toolId, SAMPLE_ORIGINAL);
     setInput2(toolId, SAMPLE_MODIFIED);
   }, [setInput, setInput2, toolId]);
+
+  const copyLeftToRight = useCallback(() => {
+    setInput2(toolId, input);
+  }, [input, setInput2, toolId]);
+
+  const copyRightToLeft = useCallback(() => {
+    setInput(toolId, input2);
+  }, [input2, setInput, toolId]);
+
+  const transformSide = useCallback(
+    (side: 'left' | 'right') => {
+      const current = side === 'left' ? input : input2;
+      const result = applyTransform(current, 'format');
+      if (result.error) return;
+
+      if (side === 'left') {
+        setInput(toolId, result.output);
+      } else {
+        setInput2(toolId, result.output);
+      }
+    },
+    [input, input2, setInput, setInput2, toolId]
+  );
 
   const toggleCountCategory = useCallback((category: DiffCategory) => {
     if (category === 'addition') setShowAdditions((v) => !v);
@@ -210,29 +411,86 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
   }, []);
 
   useEffect(() => {
+    const media = window.matchMedia('(max-width: 1180px)');
+    const apply = () => setIsNarrow(media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, []);
+
+  useEffect(() => {
+    if (isNarrow) {
+      setDrawerOpen(false);
+      setBridgeOpen(false);
+    }
+  }, [isNarrow]);
+
+  useEffect(() => {
     if (activeIndex >= filteredItems.length) {
       setActiveIndex(0);
     }
   }, [activeIndex, filteredItems.length]);
 
   useEffect(() => {
-    if (leftFocused) return;
-    const formatted = tryFormatJson(input);
-    if (formatted !== null && formatted !== input) {
-      setInput(toolId, formatted);
+    if (searchOpen) {
+      focusSearchInput();
     }
-  }, [input, leftFocused, setInput, toolId]);
+  }, [focusSearchInput, searchOpen]);
 
   useEffect(() => {
-    if (rightFocused) return;
-    const formatted = tryFormatJson(input2);
-    if (formatted !== null && formatted !== input2) {
-      setInput2(toolId, formatted);
+    if (leftSearchResult.matches.length === 0) {
+      setLeftActiveSearchIndex(-1);
+      return;
     }
-  }, [input2, rightFocused, setInput2, toolId]);
+    if (leftActiveSearchIndex >= leftSearchResult.matches.length) {
+      setLeftActiveSearchIndex(-1);
+    }
+  }, [leftActiveSearchIndex, leftSearchResult.matches.length]);
+
+  useEffect(() => {
+    if (rightSearchResult.matches.length === 0) {
+      setRightActiveSearchIndex(-1);
+      return;
+    }
+    if (rightActiveSearchIndex >= rightSearchResult.matches.length) {
+      setRightActiveSearchIndex(-1);
+    }
+  }, [rightActiveSearchIndex, rightSearchResult.matches.length]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const mod = e.ctrlKey || e.metaKey;
+      const target = e.target as HTMLElement | null;
+      const typingTarget =
+        !!target &&
+        (target.closest('input, textarea, select') !== null || target.isContentEditable);
+
+      if (mod && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        e.stopPropagation();
+        setSearchOpen(true);
+        focusSearchInput();
+        return;
+      }
+      if (searchOpen && e.key === 'Escape') {
+        e.preventDefault();
+        setSearchOpen(false);
+        return;
+      }
+      if (typingTarget) {
+        return;
+      }
+      if (searchOpen && e.key === 'Enter') {
+        e.preventDefault();
+        if (activeSearchPane === 'right') {
+          if (e.shiftKey) goToPrevRightSearch();
+          else goToNextRightSearch();
+        } else {
+          if (e.shiftKey) goToPrevLeftSearch();
+          else goToNextLeftSearch();
+        }
+        return;
+      }
       if (e.key === 'F7' || (e.altKey && e.key === 'ArrowDown')) {
         e.preventDefault();
         goToNext();
@@ -241,10 +499,30 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
         e.preventDefault();
         goToPrev();
       }
+      if (e.key === 'F3') {
+        e.preventDefault();
+        if (activeSearchPane === 'right') {
+          if (e.shiftKey) goToPrevRightSearch();
+          else goToNextRightSearch();
+        } else {
+          if (e.shiftKey) goToPrevLeftSearch();
+          else goToNextLeftSearch();
+        }
+      }
     };
-    window.addEventListener('keydown', handler);
-    return () => window.removeEventListener('keydown', handler);
-  }, [goToNext, goToPrev]);
+    window.addEventListener('keydown', handler, true);
+    return () => window.removeEventListener('keydown', handler, true);
+  }, [
+    activeSearchPane,
+    focusSearchInput,
+    goToNext,
+    goToNextLeftSearch,
+    goToNextRightSearch,
+    goToPrev,
+    goToPrevLeftSearch,
+    goToPrevRightSearch,
+    searchOpen,
+  ]);
 
   const applyDecorations = useCallback(() => {
     if (!diffEditorRef.current || !originalDecorationsRef.current || !modifiedDecorationsRef.current) return;
@@ -313,10 +591,12 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
       ed.getModifiedEditor().onDidBlurEditorText?.(() => setRightFocused(false));
 
       ed.getOriginalEditor().onDidChangeModelContent(() => {
-        setInput(toolId, ed.getOriginalEditor().getValue());
+        const next = ed.getOriginalEditor().getValue();
+        setInput(toolId, next);
       });
       ed.getModifiedEditor().onDidChangeModelContent(() => {
-        setInput2(toolId, ed.getModifiedEditor().getValue());
+        const next = ed.getModifiedEditor().getValue();
+        setInput2(toolId, next);
       });
     },
     [setInput, setInput2, toolId]
@@ -325,6 +605,30 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
   useEffect(() => {
     applyDecorations();
   }, [applyDecorations]);
+
+  useEffect(() => {
+    const editor = diffEditorRef.current?.getOriginalEditor();
+    if (!editor?.getValue || !editor.setValue) return;
+    const current = editor.getValue();
+    if (current === input) return;
+    const position = editor.getPosition?.() ?? null;
+    editor.setValue(input);
+    if (position) {
+      editor.setPosition?.(position);
+    }
+  }, [input]);
+
+  useEffect(() => {
+    const editor = diffEditorRef.current?.getModifiedEditor();
+    if (!editor?.getValue || !editor.setValue) return;
+    const current = editor.getValue();
+    if (current === input2) return;
+    const position = editor.getPosition?.() ?? null;
+    editor.setValue(input2);
+    if (position) {
+      editor.setPosition?.(position);
+    }
+  }, [input2]);
 
   useEffect(() => {
     return () => {
@@ -387,16 +691,166 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
             <button type="button" onClick={goToPrev} className={chipClass(false)} title="Previous difference (Shift+F7)">Prev</button>
             <span className="text-[11px] tabular-nums text-dt-text-dim">{filteredItems.length === 0 ? '0 of 0' : `${activeIndex + 1} of ${filteredItems.length}`}</span>
             <button type="button" onClick={goToNext} className={chipClass(false)} title="Next difference (F7)">Next</button>
+            <button type="button" onClick={() => setSearchOpen((v) => !v)} className={chipClass(searchOpen)}>{searchOpen ? 'Hide Search' : 'Search'}</button>
+            <button type="button" onClick={() => setBridgeOpen((v) => !v)} className={chipClass(false)}>{bridgeOpen ? 'Hide Bridge' : 'Show Bridge'}</button>
             <button type="button" onClick={() => setDrawerOpen((v) => !v)} className={chipClass(false)}>{drawerOpen ? 'Hide Paths' : 'Show Paths'}</button>
           </div>
         </div>
+
+        {searchOpen && (
+          <div className="px-4 pb-2.5">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-dt-text-muted">
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className={checkboxClass}
+                  checked={searchRegex}
+                  onChange={(e) => {
+                    setSearchRegex(e.target.checked);
+                    setLeftActiveSearchIndex(-1);
+                    setRightActiveSearchIndex(-1);
+                  }}
+                />
+                Regex
+              </label>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className={checkboxClass}
+                  checked={searchCase}
+                  onChange={(e) => {
+                    setSearchCase(e.target.checked);
+                    setLeftActiveSearchIndex(-1);
+                    setRightActiveSearchIndex(-1);
+                  }}
+                />
+                Match case
+              </label>
+              <label className="inline-flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  className={checkboxClass}
+                  checked={searchWholeWord}
+                  onChange={(e) => {
+                    setSearchWholeWord(e.target.checked);
+                    setLeftActiveSearchIndex(-1);
+                    setRightActiveSearchIndex(-1);
+                  }}
+                />
+                Whole word
+              </label>
+            </div>
+          </div>
+        )}
+
+        {parseError ? <div className="px-4 pb-2.5 text-xs text-dt-error">{parseError}</div> : null}
       </div>
 
       <div className="flex-1 min-h-0 flex">
         <div className="flex-1 min-w-0 min-h-0 flex flex-col border-r border-dt-border/70">
-          <div className="grid grid-cols-2 border-b border-dt-border bg-dt-surface/80 sticky top-0 z-20">
-            <div className="px-4 py-2 text-xs font-medium text-dt-text-muted border-r border-dt-border">Original</div>
-            <div className="px-4 py-2 text-xs font-medium text-dt-text-muted">Modified</div>
+          <div className="border-b border-dt-border bg-dt-surface/80 sticky top-0 z-20">
+            <div className="grid grid-cols-2">
+              <div className="px-4 py-2 text-xs font-medium text-dt-text-muted border-r border-dt-border">Original</div>
+              <div className="px-4 py-2 text-xs font-medium text-dt-text-muted">Modified</div>
+            </div>
+            {searchOpen && (
+              <div className="grid grid-cols-2 border-t border-dt-border">
+                <div className="px-3 py-2.5 border-r border-dt-border">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={leftSearchInputRef}
+                      value={leftSearchQuery}
+                      onFocus={() => setActiveSearchPane('left')}
+                      onChange={(e) => {
+                        setLeftSearchQuery(e.target.value);
+                        setLeftActiveSearchIndex(-1);
+                        setActiveSearchPane('left');
+                      }}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (e.shiftKey) goToPrevLeftSearch();
+                          else goToNextLeftSearch();
+                        }
+                      }}
+                      onKeyUp={(e) => e.stopPropagation()}
+                      placeholder="Search original"
+                      className="h-8 flex-1 min-w-0 rounded-xl border border-dt-border bg-dt-card px-3 text-sm text-dt-text outline-none focus:border-dt-text-muted"
+                    />
+                    <button
+                      type="button"
+                      onClick={goToPrevLeftSearch}
+                      disabled={leftSearchResult.matches.length === 0}
+                      className={chipClass(false)}
+                    >
+                      Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goToNextLeftSearch}
+                      disabled={leftSearchResult.matches.length === 0}
+                      className={chipClass(false)}
+                    >
+                      Next
+                    </button>
+                    <span className="text-[11px] tabular-nums text-dt-text-dim min-w-[64px] text-right">
+                      {leftSearchResult.matches.length === 0
+                        ? '0 / 0'
+                        : `${leftActiveSearchIndex >= 0 ? leftActiveSearchIndex + 1 : 0} / ${leftSearchResult.matches.length}`}
+                    </span>
+                  </div>
+                  {leftSearchResult.error ? <div className="mt-1.5 text-xs text-dt-error">{leftSearchResult.error}</div> : null}
+                </div>
+                <div className="px-3 py-2.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      ref={rightSearchInputRef}
+                      value={rightSearchQuery}
+                      onFocus={() => setActiveSearchPane('right')}
+                      onChange={(e) => {
+                        setRightSearchQuery(e.target.value);
+                        setRightActiveSearchIndex(-1);
+                        setActiveSearchPane('right');
+                      }}
+                      onKeyDown={(e) => {
+                        e.stopPropagation();
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (e.shiftKey) goToPrevRightSearch();
+                          else goToNextRightSearch();
+                        }
+                      }}
+                      onKeyUp={(e) => e.stopPropagation()}
+                      placeholder="Search modified"
+                      className="h-8 flex-1 min-w-0 rounded-xl border border-dt-border bg-dt-card px-3 text-sm text-dt-text outline-none focus:border-dt-text-muted"
+                    />
+                    <button
+                      type="button"
+                      onClick={goToPrevRightSearch}
+                      disabled={rightSearchResult.matches.length === 0}
+                      className={chipClass(false)}
+                    >
+                      Prev
+                    </button>
+                    <button
+                      type="button"
+                      onClick={goToNextRightSearch}
+                      disabled={rightSearchResult.matches.length === 0}
+                      className={chipClass(false)}
+                    >
+                      Next
+                    </button>
+                    <span className="text-[11px] tabular-nums text-dt-text-dim min-w-[64px] text-right">
+                      {rightSearchResult.matches.length === 0
+                        ? '0 / 0'
+                        : `${rightActiveSearchIndex >= 0 ? rightActiveSearchIndex + 1 : 0} / ${rightSearchResult.matches.length}`}
+                    </span>
+                  </div>
+                  {rightSearchResult.error ? <div className="mt-1.5 text-xs text-dt-error">{rightSearchResult.error}</div> : null}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-h-0 relative">
@@ -410,8 +864,8 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
 
             <DiffEditor
               height="100%"
-              original={input}
-              modified={input2}
+              original={originalSeedRef.current}
+              modified={modifiedSeedRef.current}
               language="json"
               beforeMount={defineWorkspaceMonacoThemes}
               onMount={onMount}
@@ -425,6 +879,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
                 ignoreTrimWhitespace: false,
                 renderOverviewRuler: true,
                 diffWordWrap: 'on',
+                useInlineViewWhenSpaceIsLimited: false,
                 fontFamily: 'Fira Code, JetBrains Mono, Consolas, monospace',
                 fontSize: 13,
                 lineNumbers: 'on',
@@ -442,6 +897,17 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
             />
           </div>
         </div>
+
+        {bridgeOpen && (
+          <div className="border-l border-dt-border/70 bg-dt-surface/65 backdrop-blur-dt-sm">
+            <UnifiedCompareBridge
+              onCopyLeftToRight={copyLeftToRight}
+              onCopyRightToLeft={copyRightToLeft}
+              onTransformLeft={() => transformSide('left')}
+              onTransformRight={() => transformSide('right')}
+            />
+          </div>
+        )}
 
         {drawerOpen && (
           <aside className="w-[320px] min-w-[280px] max-w-[40%] border-l border-dt-border bg-dt-surface/70 backdrop-blur-dt-sm flex flex-col">

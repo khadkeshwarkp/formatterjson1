@@ -42,6 +42,16 @@ export default function BlogIndexPage() {
       title="Developer JSON Guides"
       intro="Technical tutorials for JSON formatting, validation, diffing, and conversion. Built for real-world debugging and API workflows."
     >
+      <h2>Explore by Search Intent</h2>
+      <ul>
+        <li><Link href="/errors">JSON Error Fixes</Link> for parse/debugging issues.</li>
+        <li><Link href="/languages">Language-Specific Guides</Link> for JS/Python/C# workflows.</li>
+        <li><Link href="/use-cases">Use Cases</Link> for API debugging and large file handling.</li>
+        <li><Link href="/convert">Conversion Playbooks</Link> for nested and edge-case transforms.</li>
+        <li><Link href="/compare">Comparison Pages</Link> for tool selection decisions.</li>
+      </ul>
+
+      <h2>Latest Guides</h2>
       <ul>
         {POSTS.map((post) => (
           <li key={post.href}>

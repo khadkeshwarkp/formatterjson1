@@ -1,6 +1,7 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@import 'vanilla-jsoneditor/themes/jse-theme-dark.css';
 
 @import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@400;500;600;700&display=swap');
 
@@ -105,7 +106,7 @@ body {
   margin: 0;
   padding: 0;
   height: 100%;
-  font-size: 13px;
+  font-size: 10px;
   overflow: hidden;
   font-family: 'Inter', system-ui, sans-serif;
   background: var(--dt-bg);
@@ -135,6 +136,11 @@ a,
 [role='tab'] {
   transition-duration: 200ms;
   transition-timing-function: ease;
+}
+
+a.text-dt-accent {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 ::-webkit-scrollbar {
@@ -257,6 +263,144 @@ a,
 
 .monaco-editor .overflowingContentWidgets .monaco-editor .find-widget {
   pointer-events: auto !important;
+}
+
+/* Unified editor (vanilla-jsoneditor) theme bridge */
+.dt-unified-editor {
+  --jse-theme-color: var(--dt-accent);
+  --jse-theme-color-highlight: color-mix(in oklab, var(--dt-accent) 86%, white);
+  --jse-background-color: var(--dt-card);
+  --jse-text-color: var(--dt-text);
+  --jse-text-color-inverse: #ffffff;
+
+  --jse-main-border: 0 solid transparent;
+  --jse-menu-color: var(--dt-text);
+  --jse-modal-background: var(--dt-card);
+  --jse-modal-overlay-background: rgba(15, 17, 21, 0.35);
+  --jse-modal-code-background: var(--dt-card);
+
+  --jse-tooltip-color: var(--dt-text);
+  --jse-tooltip-background: var(--dt-soft);
+  --jse-tooltip-border: 1px solid var(--dt-border);
+  --jse-tooltip-action-button-color: var(--dt-text);
+  --jse-tooltip-action-button-background: var(--dt-card);
+
+  --jse-panel-background: var(--dt-surface);
+  --jse-panel-background-border: 1px solid var(--dt-border);
+  --jse-panel-color: var(--dt-text);
+  --jse-panel-color-readonly: var(--dt-text-dim);
+  --jse-panel-border: 1px solid var(--dt-border);
+  --jse-panel-button-color-highlight: var(--dt-text);
+  --jse-panel-button-background-highlight: var(--dt-soft);
+
+  --jse-navigation-bar-background: var(--dt-soft);
+  --jse-navigation-bar-background-highlight: color-mix(in oklab, var(--dt-soft) 85%, var(--dt-text) 15%);
+  --jse-navigation-bar-dropdown-color: var(--dt-text);
+
+  --jse-context-menu-background: var(--dt-card);
+  --jse-context-menu-background-highlight: var(--dt-soft);
+  --jse-context-menu-separator-color: var(--dt-border);
+  --jse-context-menu-color: var(--dt-text);
+  --jse-context-menu-pointer-background: var(--dt-soft);
+  --jse-context-menu-pointer-background-highlight: color-mix(in oklab, var(--dt-soft) 70%, var(--dt-text) 10%);
+  --jse-context-menu-pointer-color: var(--dt-text-muted);
+
+  --jse-key-color: var(--dt-json-key);
+  --jse-value-color: var(--dt-text);
+  --jse-value-color-number: var(--dt-json-number);
+  --jse-value-color-boolean: var(--dt-json-boolean);
+  --jse-value-color-null: var(--dt-json-null);
+  --jse-value-color-string: var(--dt-json-string);
+  --jse-value-color-url: var(--dt-json-string);
+  --jse-delimiter-color: var(--dt-text-dim);
+  --jse-edit-outline: 2px solid color-mix(in oklab, var(--dt-text) 30%, transparent);
+
+  --jse-selection-background-color: rgba(120, 120, 128, 0.2);
+  --jse-selection-background-inactive-color: rgba(120, 120, 128, 0.14);
+  --jse-hover-background-color: rgba(120, 120, 128, 0.1);
+  --jse-active-line-background-color: rgba(120, 120, 128, 0.1);
+  --jse-search-match-background-color: rgba(158, 132, 85, 0.14);
+
+  --jse-collapsed-items-background-color: var(--dt-soft);
+  --jse-collapsed-items-selected-background-color: color-mix(in oklab, var(--dt-soft) 80%, var(--dt-text) 12%);
+  --jse-collapsed-items-link-color: var(--dt-text-muted);
+  --jse-collapsed-items-link-color-highlight: var(--dt-text);
+
+  --jse-search-match-color: rgba(158, 132, 85, 0.16);
+  --jse-search-match-outline: 1px solid rgba(158, 132, 85, 0.36);
+  --jse-search-match-active-color: rgba(158, 132, 85, 0.22);
+  --jse-search-match-active-outline: 1px solid rgba(158, 132, 85, 0.46);
+
+  --jse-tag-background: var(--dt-soft);
+  --jse-tag-color: var(--dt-text-muted);
+
+  --jse-table-header-background: var(--dt-soft);
+  --jse-table-header-background-highlight: color-mix(in oklab, var(--dt-soft) 85%, var(--dt-text) 15%);
+  --jse-table-row-odd-background: rgba(120, 120, 128, 0.04);
+
+  --jse-input-background: var(--dt-card);
+  --jse-input-border: 1px solid var(--dt-border);
+  --jse-button-background: var(--dt-accent);
+  --jse-button-background-highlight: var(--dt-accent-hover);
+  --jse-button-color: #ffffff;
+  --jse-button-secondary-background: var(--dt-card);
+  --jse-button-secondary-background-highlight: var(--dt-soft);
+  --jse-button-secondary-background-disabled: color-mix(in oklab, var(--dt-soft) 82%, transparent);
+  --jse-button-secondary-color: var(--dt-text);
+  --jse-a-color: var(--dt-accent);
+  --jse-a-color-highlight: var(--dt-accent-hover);
+
+  --jse-svelte-select-background: var(--dt-card);
+  --jse-svelte-select-border: 1px solid var(--dt-border);
+  --list-background: var(--dt-card);
+  --item-hover-bg: var(--dt-soft);
+  --multi-item-bg: var(--dt-soft);
+  --input-color: var(--dt-text);
+  --multi-clear-bg: var(--dt-text-dim);
+  --multi-item-clear-icon-color: var(--dt-card);
+  --multi-item-outline: 1px solid var(--dt-border);
+  --list-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+
+  --jse-color-picker-background: var(--dt-card);
+  --jse-color-picker-border-box-shadow: color-mix(in oklab, var(--dt-text-muted) 35%, transparent) 0 0 0 1px;
+}
+
+.dark .dt-unified-editor,
+.black .dt-unified-editor {
+  --jse-selection-background-color: rgba(154, 154, 163, 0.24);
+  --jse-selection-background-inactive-color: rgba(154, 154, 163, 0.17);
+  --jse-hover-background-color: rgba(154, 154, 163, 0.1);
+  --jse-active-line-background-color: rgba(154, 154, 163, 0.08);
+  --jse-table-row-odd-background: rgba(255, 255, 255, 0.03);
+  --list-shadow: 0 12px 32px rgba(0, 0, 0, 0.35);
+}
+
+.dt-unified-editor .dt-unified-editor-host,
+.dt-unified-editor .jse-main {
+  height: 100%;
+  min-height: 0;
+}
+
+.dt-unified-editor .jse-main {
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+}
+
+.dt-unified-editor .jse-main .cm-editor {
+  font-family: 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.dt-unified-editor .jse-context-menu {
+  font-size: 12px;
+  min-width: 210px;
+}
+
+.dt-unified-editor .jse-context-menu .jse-button {
+  min-height: 32px;
+  padding-top: 5px;
+  padding-bottom: 5px;
 }
 
 /* Blog typography */

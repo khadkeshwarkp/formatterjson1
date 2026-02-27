@@ -8,10 +8,33 @@ interface ToolData {
   input2?: string;
 }
 
+export type EditorMode = 'text' | 'tree' | 'table';
+
+export interface ToolSearchState {
+  open: boolean;
+  query: string;
+  replaceText: string;
+  useRegex: boolean;
+  matchCase: boolean;
+  wholeWord: boolean;
+  resultCount: number;
+  activeResultIndex: number;
+}
+
+export interface ToolEditorPanelState {
+  toolbarVisible: boolean;
+  searchOpen: boolean;
+  transformOpen: boolean;
+  compareBridgeOpen: boolean;
+}
+
 interface WorkspaceState {
   activeTool: string;
   openTabs: string[];
   toolData: Record<string, ToolData>;
+  editorModeByTool: Record<string, EditorMode>;
+  searchStateByTool: Record<string, ToolSearchState>;
+  editorPanelStateByTool: Record<string, ToolEditorPanelState>;
   theme: 'light' | 'dark' | 'black';
   sidebarCollapsed: boolean;
   recentTools: string[];
@@ -30,6 +53,9 @@ interface WorkspaceState {
   setInput: (toolId: string, input: string) => void;
   setInput2: (toolId: string, input2: string) => void;
   setOutput: (toolId: string, output: string) => void;
+  setEditorMode: (toolId: string, mode: EditorMode) => void;
+  setSearchState: (toolId: string, next: Partial<ToolSearchState>) => void;
+  setEditorPanelState: (toolId: string, next: Partial<ToolEditorPanelState>) => void;
   clearInput: (toolId: string) => void;
   toggleTheme: () => void;
   toggleSidebar: () => void;
@@ -44,12 +70,33 @@ interface WorkspaceState {
 
 const MAX_RECENT = 5;
 
+const DEFAULT_SEARCH_STATE: ToolSearchState = {
+  open: false,
+  query: '',
+  replaceText: '',
+  useRegex: false,
+  matchCase: false,
+  wholeWord: false,
+  resultCount: 0,
+  activeResultIndex: -1,
+};
+
+const DEFAULT_EDITOR_PANEL_STATE: ToolEditorPanelState = {
+  toolbarVisible: true,
+  searchOpen: false,
+  transformOpen: false,
+  compareBridgeOpen: false,
+};
+
 export const useWorkspaceStore = create<WorkspaceState>()(
   persist(
     (set, get) => ({
       activeTool: 'json-formatter',
       openTabs: ['json-formatter'],
       toolData: {},
+      editorModeByTool: {},
+      searchStateByTool: {},
+      editorPanelStateByTool: {},
       theme: 'light',
       sidebarCollapsed: false,
       recentTools: [],
@@ -115,6 +162,36 @@ export const useWorkspaceStore = create<WorkspaceState>()(
           },
         })),
 
+      setEditorMode: (toolId, mode) =>
+        set((s) => ({
+          editorModeByTool: {
+            ...s.editorModeByTool,
+            [toolId]: mode,
+          },
+        })),
+
+      setSearchState: (toolId, next) =>
+        set((s) => ({
+          searchStateByTool: {
+            ...s.searchStateByTool,
+            [toolId]: {
+              ...(s.searchStateByTool[toolId] ?? DEFAULT_SEARCH_STATE),
+              ...next,
+            },
+          },
+        })),
+
+      setEditorPanelState: (toolId, next) =>
+        set((s) => ({
+          editorPanelStateByTool: {
+            ...s.editorPanelStateByTool,
+            [toolId]: {
+              ...(s.editorPanelStateByTool[toolId] ?? DEFAULT_EDITOR_PANEL_STATE),
+              ...next,
+            },
+          },
+        })),
+
       toggleTheme: () =>
         set((s) => ({
           theme: s.theme === 'light' ? 'dark' : s.theme === 'dark' ? 'black' : 'light',
@@ -162,6 +239,9 @@ export const useWorkspaceStore = create<WorkspaceState>()(
         activeTool: state.activeTool,
         openTabs: state.openTabs,
         toolData: state.toolData,
+        editorModeByTool: state.editorModeByTool,
+        searchStateByTool: state.searchStateByTool,
+        editorPanelStateByTool: state.editorPanelStateByTool,
         theme: state.theme,
         sidebarCollapsed: state.sidebarCollapsed,
         recentTools: state.recentTools,

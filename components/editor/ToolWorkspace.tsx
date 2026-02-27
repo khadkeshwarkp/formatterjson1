@@ -1,11 +1,10 @@
 'use client';
 
-import { useEffect, useCallback, useState, useRef, DragEvent } from 'react';
+import { useEffect, useCallback, useState, useRef, DragEvent, useMemo } from 'react';
 import { useWorkspaceStore } from '@/lib/store';
 import { TOOL_MAP } from '@/lib/tools-registry';
 import {
   jsonDiff,
-  jsonDiffTwo,
   formatJson,
   validateJson,
   minifyJson,
@@ -53,11 +52,14 @@ import {
   type ProcessResult,
 } from '@/lib/processors';
 import MonacoWrapper from './MonacoWrapper';
+import UnifiedEditor from './UnifiedEditor';
 import OutputPanel from './OutputPanel';
 import Toolbar from './Toolbar';
 import KeyboardShortcutsModal from './KeyboardShortcutsModal';
 import JsonDiffView from './JsonDiffView';
 import { isInputOptionalTool } from '@/lib/input-placeholders';
+import { shouldUseUnifiedEditor } from '@/lib/editor-capabilities';
+import { createNoopValidator } from '@/lib/editor-validation';
 
 interface ToolWorkspaceProps {
   toolId: string;
@@ -181,8 +183,17 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const [splitPercent, setSplitPercent] = useState(50);
   const [isDragOver, setIsDragOver] = useState(false);
   const [shakeTrigger, setShakeTrigger] = useState(false);
+  const [isNarrow, setIsNarrow] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const dragging = useRef(false);
+
+  useEffect(() => {
+    const media = window.matchMedia('(max-width: 1023px)');
+    const apply = () => setIsNarrow(media.matches);
+    apply();
+    media.addEventListener('change', apply);
+    return () => media.removeEventListener('change', apply);
+  }, []);
 
   useEffect(() => {
     if (error) {
@@ -193,40 +204,43 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   }, [error]);
 
   const isTwoPanelDiff = toolId === 'json-diff' || toolId === 'json-compare';
+  const useUnifiedInputEditor = shouldUseUnifiedEditor(toolId) && !isTwoPanelDiff;
+  const unifiedValidator = useMemo(
+    () => (toolId === 'json-validator' ? createNoopValidator() : undefined),
+    [toolId]
+  );
   const runTool = useCallback(() => {
+    if (isTwoPanelDiff) {
+      setError(null);
+      return;
+    }
+
     setProcessing(true);
     const run = async () => {
       try {
-        if (isTwoPanelDiff) {
-          const result = jsonDiffTwo(input, input2);
-          setOutput(toolId, result.output);
-          setError(result.error);
-          if (result.error) addToast(result.error, 'error');
-        } else {
-          const processor = getProcessor(toolId, base64Mode);
-          const maybePromise = processor(input);
-          const result: ProcessResult = await Promise.resolve(maybePromise);
-          setOutput(toolId, result.output);
-          setError(result.error);
-          if (result.error) addToast(result.error, 'error');
-        }
+        const processor = getProcessor(toolId, base64Mode);
+        const maybePromise = processor(input);
+        const result: ProcessResult = await Promise.resolve(maybePromise);
+        setOutput(toolId, result.output);
+        setError(result.error);
+        if (result.error) addToast(result.error, 'error');
       } finally {
         setProcessing(false);
       }
     };
     run();
-  }, [toolId, input, input2, base64Mode, setOutput, addToast, isTwoPanelDiff]);
+  }, [toolId, input, base64Mode, setOutput, addToast, isTwoPanelDiff]);
 
   // Auto-run on input change (debounced). For input-optional tools, run when empty too (default output).
   const inputOptional = isInputOptionalTool(toolId);
   useEffect(() => {
+    if (isTwoPanelDiff) return;
+
     const timer = setTimeout(() => {
-      if (toolId === 'json-diff' || toolId === 'json-compare') {
-        if (input || input2) runTool();
-      } else if (inputOptional || input) runTool();
+      if (inputOptional || input) runTool();
     }, 300);
     return () => clearTimeout(timer);
-  }, [toolId, input, input2, runTool, inputOptional]);
+  }, [input, inputOptional, isTwoPanelDiff, runTool]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -350,6 +364,8 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
           base64Mode={base64Mode}
           setBase64Mode={setBase64Mode}
           isJsonTool={isJsonTool}
+          showRun={false}
+          showSort={!useUnifiedInputEditor}
         />
       )}
 
@@ -367,7 +383,15 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
             </button>
           </div>
           <div className="flex-1 min-h-0">
-            <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
+            {useUnifiedInputEditor ? (
+              <UnifiedEditor
+                toolId={toolId}
+                language={getInputLanguage(toolId)}
+                validator={unifiedValidator}
+              />
+            ) : (
+              <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
+            )}
           </div>
         </div>
       )}
@@ -400,12 +424,29 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
           <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} showOutputOnlyHint />
         </div>
       ) : panelFullscreen === 'none' ? (
-        <div ref={containerRef} className={`flex flex-1 min-h-0 min-w-0 ${shakeTrigger ? 'animate-shake' : ''}`}>
-          <div style={{ width: `${splitPercent}%` }} className="min-w-0 min-h-0 flex flex-col">
-            <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
+        <div
+          ref={containerRef}
+          className={`flex flex-1 min-h-0 min-w-0 ${shakeTrigger ? 'animate-shake' : ''} ${isNarrow ? 'flex-col gap-3 overflow-y-auto' : ''}`}
+        >
+          <div
+            style={isNarrow ? undefined : { width: `${splitPercent}%` }}
+            className={`min-w-0 min-h-0 flex flex-col ${isNarrow ? 'min-h-[42vh]' : ''}`}
+          >
+            {useUnifiedInputEditor ? (
+              <UnifiedEditor
+                toolId={toolId}
+                language={getInputLanguage(toolId)}
+                validator={unifiedValidator}
+              />
+            ) : (
+              <MonacoWrapper toolId={toolId} language={getInputLanguage(toolId)} />
+            )}
           </div>
-          <div className="resizer" onMouseDown={onMouseDown} />
-          <div style={{ width: `${100 - splitPercent}%` }} className="min-w-0 min-h-0 flex flex-col">
+          {!isNarrow && <div className="resizer" onMouseDown={onMouseDown} />}
+          <div
+            style={isNarrow ? undefined : { width: `${100 - splitPercent}%` }}
+            className={`min-w-0 min-h-0 flex flex-col ${isNarrow ? 'min-h-[42vh]' : ''}`}
+          >
             <OutputPanel toolId={toolId} error={error} outputLanguage={getOutputLanguage(toolId)} />
           </div>
         </div>

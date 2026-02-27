@@ -25,7 +25,7 @@ export default function Sidebar() {
 
   if (sidebarCollapsed) {
     return (
-      <aside className="m-3 mr-0 flex flex-col items-center w-16 bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border py-3 rounded-dt-lg flex-shrink-0 shadow-dt-panel">
+      <aside className="m-3 mr-0 h-[calc(100vh-1.5rem)] min-h-0 flex flex-col items-center w-16 bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border py-3 rounded-dt-lg flex-shrink-0 shadow-dt-panel">
         <button
           onClick={toggleSidebar}
           className="text-dt-text-muted hover:text-dt-text p-2 rounded-xl hover:bg-dt-soft transition-colors duration-200"
@@ -46,7 +46,7 @@ export default function Sidebar() {
   }
 
   return (
-    <aside className="m-3 mr-0 flex flex-col w-[240px] bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border flex-shrink-0 rounded-dt-lg shadow-dt-panel">
+    <aside className="m-3 mr-0 h-[calc(100vh-1.5rem)] min-h-0 flex flex-col w-[240px] bg-dt-sidebar/90 backdrop-blur-dt border border-dt-border flex-shrink-0 rounded-dt-lg shadow-dt-panel">
       <div className="flex items-center justify-between px-4 h-12 border-b border-dt-border">
         <span className="text-sm font-semibold text-dt-text tracking-wide">DevTools</span>
         <button

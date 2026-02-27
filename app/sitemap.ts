@@ -77,7 +77,23 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/blog/best-practices-validating-json-online',
   ];
 
-  const lastMod = new Date('2026-02-21');
+  const seoHubRoutes = ['/errors', '/languages', '/compare', '/use-cases', '/convert'];
+  const seoChildRoutes = [
+    '/errors/unexpected-token-json',
+    '/errors/trailing-comma-json',
+    '/errors/jsondecodeerror-expecting-value',
+    '/languages/javascript-json-tools',
+    '/languages/python-json-tools',
+    '/languages/csharp-json-tools',
+    '/compare/formatterjson-vs-jsonformatter-org',
+    '/compare/json-diff-vs-json-compare',
+    '/use-cases/api-json-debugging',
+    '/use-cases/large-json-files',
+    '/convert/json-to-csv-nested',
+    '/convert/csv-to-json-headers',
+  ];
+
+  const lastMod = new Date('2026-02-27');
 
   return [
     { url: SITE_URL, lastModified: lastMod, changeFrequency: 'weekly' as const, priority: 1.0 },
@@ -116,6 +132,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: lastMod,
       changeFrequency: 'weekly' as const,
       priority: route === '/blog' ? 0.75 : 0.7,
+    })),
+    ...seoHubRoutes.map((route) => ({
+      url: `${SITE_URL}${route}`,
+      lastModified: lastMod,
+      changeFrequency: 'weekly' as const,
+      priority: 0.74,
+    })),
+    ...seoChildRoutes.map((route) => ({
+      url: `${SITE_URL}${route}`,
+      lastModified: lastMod,
+      changeFrequency: 'weekly' as const,
+      priority: 0.68,
     })),
   ];
 }

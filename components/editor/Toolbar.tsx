@@ -15,6 +15,8 @@ interface ToolbarProps {
   base64Mode?: 'encode' | 'decode';
   setBase64Mode?: (mode: 'encode' | 'decode') => void;
   isJsonTool?: boolean;
+  showRun?: boolean;
+  showSort?: boolean;
 }
 
 function sortJsonKeys(input: string): string | null {
@@ -44,6 +46,8 @@ export default function Toolbar({
   base64Mode = 'encode',
   setBase64Mode,
   isJsonTool = false,
+  showRun = false,
+  showSort = true,
 }: ToolbarProps) {
   const tool = TOOL_MAP[toolId];
   const input = useWorkspaceStore((s) => s.toolData[toolId]?.input ?? '');
@@ -163,17 +167,19 @@ export default function Toolbar({
 
       <div className="w-px h-5 bg-dt-border" />
 
-      <button
-        onClick={onRun}
-        disabled={processing}
-        className="flex items-center gap-2 text-sm font-medium bg-dt-soft hover:bg-dt-text hover:text-dt-bg disabled:opacity-50 text-dt-text px-4 py-1.5 rounded-xl border border-dt-border transition-all duration-200"
-        title="Run (Ctrl+Enter)"
-      >
-        {processing ? <span className="animate-spin">⟳</span> : <span>▶</span>}
-        Run
-      </button>
+      {showRun && (
+        <button
+          onClick={onRun}
+          disabled={processing}
+          className="flex items-center gap-2 text-sm font-medium bg-dt-soft hover:bg-dt-text hover:text-dt-bg disabled:opacity-50 text-dt-text px-4 py-1.5 rounded-xl border border-dt-border transition-all duration-200"
+          title="Run (Ctrl+Enter)"
+        >
+          {processing ? <span className="animate-spin">⟳</span> : <span>▶</span>}
+          Run
+        </button>
+      )}
 
-      {isJsonTool && (
+      {isJsonTool && showSort && (
         <button onClick={handleSortKeys} className={btnClass} title="Sort object keys alphabetically">
           Sort
         </button>

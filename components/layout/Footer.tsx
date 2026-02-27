@@ -61,6 +61,31 @@ export default function Footer() {
                   Blog
                 </Link>
               </li>
+              <li>
+                <Link href="/errors" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Error Fixes
+                </Link>
+              </li>
+              <li>
+                <Link href="/languages" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Language Guides
+                </Link>
+              </li>
+              <li>
+                <Link href="/compare" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Tool Comparisons
+                </Link>
+              </li>
+              <li>
+                <Link href="/use-cases" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Use Cases
+                </Link>
+              </li>
+              <li>
+                <Link href="/convert" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Conversion Playbooks
+                </Link>
+              </li>
             </ul>
           </div>
         </div>

@@ -10,7 +10,11 @@ export default function WorkspaceShell({ children }: { children: React.ReactNode
 
   return (
     <div className="flex h-screen w-screen text-dt-text overflow-hidden app-shell-bg">
-      {!isFullscreen && <Sidebar />}
+      {!isFullscreen && (
+        <div className="hidden lg:flex h-full min-h-0 shrink-0">
+          <Sidebar />
+        </div>
+      )}
       <div className="flex flex-col flex-1 min-w-0">
         {!isFullscreen && <TabBar />}
         <main className="flex-1 min-h-0 overflow-hidden">{children}</main>

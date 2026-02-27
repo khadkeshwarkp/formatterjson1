@@ -7,6 +7,7 @@ import WorkspaceShell from '@/components/layout/WorkspaceShell';
 import SiteFooter from '@/components/layout/SiteFooter';
 import { HUBS } from '@/lib/hubs';
 import { TOOL_MAP } from '@/lib/tools-registry';
+import { SEO_HUBS } from '@/lib/seo-hubs';
 
 const SITE_URL = 'https://formatterjson.org';
 
@@ -156,6 +157,23 @@ export default function PlatformHomePage() {
                 >
                   <span className="font-semibold text-dt-text text-lg">{hub.label}</span>
                   <p className="text-sm text-dt-text-muted mt-1">View all tools in this category</p>
+                </Link>
+              ))}
+            </div>
+          </section>
+
+          {/* SECTION 3.5 — SEO Hub Routes */}
+          <section className="mb-16">
+            <h2 className="text-2xl font-bold mb-6">Problem-Specific Learning Hubs</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {SEO_HUBS.map((hub) => (
+                <Link
+                  key={hub.href}
+                  href={hub.href}
+                  className="p-5 bg-dt-surface border border-dt-border rounded-xl hover:border-dt-accent transition-colors"
+                >
+                  <span className="font-semibold text-dt-text text-lg">{hub.title}</span>
+                  <p className="text-sm text-dt-text-muted mt-1">{hub.description}</p>
                 </Link>
               ))}
             </div>
