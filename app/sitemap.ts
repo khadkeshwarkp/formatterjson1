@@ -67,6 +67,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/text-case-converter',
   ];
 
+  const stringJsonRoutes = [
+    '/string-to-json',
+    '/json-to-string',
+    '/json-string-to-object',
+    '/parse-json-string',
+  ];
+
   const legalRoutes = ['/about', '/privacy', '/terms', '/disclaimer', '/contact'];
   const blogRoutes = [
     '/blog',
@@ -120,6 +127,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: lastMod,
       changeFrequency: 'weekly' as const,
       priority: 0.8,
+    })),
+    ...stringJsonRoutes.map((route) => ({
+      url: `${SITE_URL}${route}`,
+      lastModified: lastMod,
+      changeFrequency: 'weekly' as const,
+      priority: route === '/string-to-json' ? 0.82 : 0.78,
     })),
     ...legalRoutes.map((route) => ({
       url: `${SITE_URL}${route}`,

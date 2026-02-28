@@ -701,6 +701,118 @@ export function jsonUnescape(input: string): ProcessResult {
   }
 }
 
+interface NestedJsonParseResult {
+  initialValue: unknown;
+  resolvedValue: unknown;
+  nestedDepth: number;
+}
+
+function parseNestedJsonLayers(input: string, maxDepth = 8): NestedJsonParseResult {
+  const initialValue = JSON.parse(input);
+  let resolvedValue: unknown = initialValue;
+  let nestedDepth = 0;
+
+  while (typeof resolvedValue === 'string' && nestedDepth < maxDepth) {
+    const candidate = resolvedValue.trim();
+    if (!candidate) break;
+    try {
+      resolvedValue = JSON.parse(candidate);
+      nestedDepth += 1;
+    } catch {
+      break;
+    }
+  }
+
+  return { initialValue, resolvedValue, nestedDepth };
+}
+
+function getJsonValueType(value: unknown): string {
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  return typeof value;
+}
+
+export function stringToJson(input: string): ProcessResult {
+  try {
+    const trimmed = input.trim();
+    if (!trimmed) return { output: '', error: null, errorLine: null };
+
+    const parsed = parseNestedJsonLayers(trimmed);
+    if (typeof parsed.initialValue === 'string' && typeof parsed.resolvedValue === 'string') {
+      return {
+        output: '',
+        error:
+          'Input is a string, but it does not contain valid JSON content. Example: "{\\"name\\":\\"Ada\\"}".',
+        errorLine: null,
+      };
+    }
+
+    return { output: JSON.stringify(parsed.resolvedValue, null, 2), error: null, errorLine: null };
+  } catch (e) {
+    return parseJsonError(e);
+  }
+}
+
+export function jsonStringToObject(input: string): ProcessResult {
+  try {
+    const trimmed = input.trim();
+    if (!trimmed) return { output: '', error: null, errorLine: null };
+
+    const parsed = parseNestedJsonLayers(trimmed);
+    const finalType = getJsonValueType(parsed.resolvedValue);
+    if (finalType !== 'object' && finalType !== 'array') {
+      return {
+        output: '',
+        error: `Parsed value is ${finalType}. Expected a JSON object or array.`,
+        errorLine: null,
+      };
+    }
+
+    return { output: JSON.stringify(parsed.resolvedValue, null, 2), error: null, errorLine: null };
+  } catch (e) {
+    return parseJsonError(e);
+  }
+}
+
+export function parseJsonString(input: string): ProcessResult {
+  try {
+    const trimmed = input.trim();
+    if (!trimmed) return { output: '', error: null, errorLine: null };
+
+    const parsed = parseNestedJsonLayers(trimmed);
+    const report = {
+      status: 'ok',
+      topLevelType: getJsonValueType(parsed.initialValue),
+      resolvedType: getJsonValueType(parsed.resolvedValue),
+      nestedStringLayersParsed: parsed.nestedDepth,
+      value: parsed.resolvedValue,
+    };
+
+    return { output: JSON.stringify(report, null, 2), error: null, errorLine: null };
+  } catch (e) {
+    return parseJsonError(e);
+  }
+}
+
+export function jsonToString(input: string): ProcessResult {
+  try {
+    const trimmed = input.trim();
+    if (!trimmed) return { output: '', error: null, errorLine: null };
+
+    const parsed = JSON.parse(trimmed);
+    const rawJson = JSON.stringify(parsed);
+    const escapedLiteral = `"${rawJson.replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+
+    return {
+      output: `JSON string literal (escaped):\n${escapedLiteral}\n\nRaw JSON string:\n${rawJson}`,
+      error: null,
+      errorLine: null,
+    };
+  } catch (e) {
+    return parseJsonError(e);
+  }
+}
+
 export function jsonToHtmlTable(input: string): ProcessResult {
   try {
     if (!input.trim()) return { output: '', error: null, errorLine: null };

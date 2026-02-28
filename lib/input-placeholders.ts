@@ -80,6 +80,14 @@ const PLACEHOLDERS: Record<string, string> = {
     'Use left and right panels for the two JSON documents to compare.',
   'json-compare':
     'Use left and right panels for the two JSON documents to compare.',
+  'string-to-json':
+    'Paste an escaped JSON string (for example "{\\"name\\":\\"Ada\\"}") to decode and format.',
+  'json-to-string':
+    'Paste JSON object/array to serialize into an escaped string literal.',
+  'json-string-to-object':
+    'Paste a JSON string field (for example "{\\"id\\":1}") to parse into an object/array.',
+  'parse-json-string':
+    'Paste JSON or a JSON string to inspect parse depth, resolved type, and parsed value.',
 };
 
 export function getInputPlaceholder(toolId: string): string {

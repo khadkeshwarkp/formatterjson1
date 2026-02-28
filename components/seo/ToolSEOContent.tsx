@@ -112,13 +112,13 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
       <ol className="list-decimal list-inside text-dt-text-muted mb-6 space-y-2 leading-relaxed">
         <li>Paste or type your input into the editor on the left panel.</li>
         <li>
-          Press <kbd className="bg-dt-surface px-1.5 py-0.5 rounded text-xs font-mono">Ctrl+Enter</kbd> or
-          click <strong>Run</strong> to process your data instantly.
+          Results update automatically while you type. You can also press{' '}
+          <kbd className="bg-dt-surface px-1.5 py-0.5 rounded text-xs font-mono">Ctrl+Enter</kbd> to force a refresh.
         </li>
         <li>View the result in the output panel on the right with full syntax highlighting.</li>
         <li>Use <strong>Copy</strong> or <strong>Download</strong> to export the result.</li>
         <li>Drag and drop <code className="bg-dt-surface px-1 rounded text-xs">.json</code> or <code className="bg-dt-surface px-1 rounded text-xs">.txt</code> files directly into the editor.</li>
-        {toolId.startsWith('json') && (
+        {tool.category === 'json' && (
           <li>
             Toggle <strong>Tree View</strong> for an interactive, collapsible view of the JSON structure.
           </li>
@@ -205,8 +205,8 @@ export default function ToolSEOContent({ toolId }: ToolSEOContentProps) {
       <div className="mb-8 p-5 bg-dt-surface border border-dt-border rounded-xl text-center">
         <h2 className="text-lg font-semibold mb-2">Try {tool.name} Now</h2>
         <p className="text-dt-text-muted text-sm mb-3">
-          Paste your data into the editor above and press <kbd className="bg-dt-bg px-1.5 py-0.5 rounded text-xs font-mono">Ctrl+Enter</kbd> to
-          get instant results. Free, fast, and private.
+          Paste your data into the editor above for instant processing. Use{' '}
+          <kbd className="bg-dt-bg px-1.5 py-0.5 rounded text-xs font-mono">Ctrl+Enter</kbd> anytime to re-run quickly.
         </p>
       </div>
 

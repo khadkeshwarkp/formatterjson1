@@ -49,6 +49,10 @@ import {
   hashGenerator,
   colorConverter,
   textCaseConverter,
+  stringToJson,
+  jsonToString,
+  jsonStringToObject,
+  parseJsonString,
   type ProcessResult,
 } from '@/lib/processors';
 import MonacoWrapper from './MonacoWrapper';
@@ -90,7 +94,6 @@ function getProcessor(toolId: string, base64Mode: 'encode' | 'decode') {
     case 'json-viewer':
     case 'json-parser':
     case 'json-pretty-print': return formatJson;
-    case 'json-diff': return jsonDiff;
     case 'json-to-typescript': return jsonToTypeScript;
     case 'json-to-python': return jsonToPython;
     case 'json-to-java': return jsonToJava;
@@ -101,6 +104,10 @@ function getProcessor(toolId: string, base64Mode: 'encode' | 'decode') {
     case 'json-to-kotlin': return jsonToKotlin;
     case 'json-to-swift': return jsonToSwift;
     case 'json-to-php': return jsonToPhp;
+    case 'string-to-json': return stringToJson;
+    case 'json-to-string': return jsonToString;
+    case 'json-string-to-object': return jsonStringToObject;
+    case 'parse-json-string': return parseJsonString;
     case 'json-compare':
     case 'json-diff': return jsonDiff;
     case 'json-sorter': return sortJson;
@@ -127,7 +134,19 @@ function getProcessor(toolId: string, base64Mode: 'encode' | 'decode') {
 
 function getOutputLanguage(toolId: string): string {
   if (['json-to-xml', 'xml-formatter'].includes(toolId)) return 'xml';
-  if (['base64', 'base64-encode', 'base64-decode', 'json-validator', 'json-diff', 'xml-validator', 'url-encode', 'url-decode'].includes(toolId)) return 'text';
+  if (
+    [
+      'base64',
+      'base64-encode',
+      'base64-decode',
+      'json-validator',
+      'json-diff',
+      'xml-validator',
+      'url-encode',
+      'url-decode',
+      'json-to-string',
+    ].includes(toolId)
+  ) return 'text';
   if (['yaml-formatter', 'json-to-yaml'].includes(toolId)) return 'yaml';
   if (toolId === 'json-to-csv') return 'csv';
   if (toolId === 'html-formatter') return 'html';
@@ -146,7 +165,17 @@ function getInputLanguage(toolId: string): string {
   if (['base64', 'base64-encode', 'base64-decode', 'jwt-decoder', 'url-encode', 'url-decode'].includes(toolId)) return 'plaintext';
   if (['yaml-formatter', 'yaml-to-json'].includes(toolId)) return 'yaml';
   if (['xml-formatter', 'xml-validator', 'xml-to-json'].includes(toolId)) return 'xml';
-  if (['csv-to-json', 'html-formatter', 'json-escape', 'json-unescape'].includes(toolId)) return 'plaintext';
+  if (
+    [
+      'csv-to-json',
+      'html-formatter',
+      'json-escape',
+      'json-unescape',
+      'string-to-json',
+      'json-string-to-object',
+      'parse-json-string',
+    ].includes(toolId)
+  ) return 'plaintext';
   const utilityPlain = ['lorem-ipsum', 'uuid-generator', 'random-json-generator', 'timestamp-converter', 'regex-tester', 'hash-generator', 'color-converter', 'text-case-converter'];
   if (utilityPlain.includes(toolId)) return 'plaintext';
   if (toolId === 'jwt-generator') return 'json';
@@ -164,6 +193,7 @@ const CONVERT_TARGETS = [
 
 export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
   const tool = TOOL_MAP[toolId];
+  const isJsonTool = tool?.category === 'json';
   const setOutput = useWorkspaceStore((s) => s.setOutput);
   const setInput = useWorkspaceStore((s) => s.setInput);
   const input = useWorkspaceStore((s) => s.toolData[toolId]?.input ?? '');
@@ -257,7 +287,7 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
       }
       if (mod && e.shiftKey && (e.key === 'M' || e.key === 'm')) {
         e.preventDefault();
-        if (toolId.startsWith('json')) {
+        if (isJsonTool) {
           const result = minifyJson(input);
           setOutput(toolId, result.output);
           setError(result.error);
@@ -274,7 +304,7 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [runTool, toolId, input, setOutput, toggleSidebar, toggleFullscreen, setShowShortcutsModal]);
+  }, [runTool, isJsonTool, toolId, input, setOutput, toggleSidebar, toggleFullscreen, setShowShortcutsModal]);
 
   // Resizable split
   const onMouseDown = () => {
@@ -334,7 +364,6 @@ export default function ToolWorkspace({ toolId }: ToolWorkspaceProps) {
 
   if (!tool) return <div className="p-4 text-dt-error">Unknown tool: {toolId}</div>;
 
-  const isJsonTool = toolId.startsWith('json');
   const inputByteSize = new TextEncoder().encode(input).length;
   const inputLines = input ? input.split(/\n/).length : 0;
   const validationStatus = error ? 'Invalid' : output ? 'Valid' : '—';

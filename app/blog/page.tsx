@@ -49,6 +49,7 @@ export default function BlogIndexPage() {
         <li><Link href="/use-cases">Use Cases</Link> for API debugging and large file handling.</li>
         <li><Link href="/convert">Conversion Playbooks</Link> for nested and edge-case transforms.</li>
         <li><Link href="/compare">Comparison Pages</Link> for tool selection decisions.</li>
+        <li><Link href="/string-to-json">String to JSON Tool</Link> for escaped payload parsing and serialization workflows.</li>
       </ul>
 
       <h2>Latest Guides</h2>

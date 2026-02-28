@@ -62,6 +62,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/string-to-json" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  String to JSON
+                </Link>
+              </li>
+              <li>
                 <Link href="/errors" className="text-dt-text-muted hover:text-dt-text transition-colors">
                   Error Fixes
                 </Link>
