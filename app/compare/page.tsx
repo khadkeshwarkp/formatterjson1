@@ -35,19 +35,53 @@ export default function CompareHubPage() {
       breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Compare' }]}
     >
       <p>
-        Start with <Link href="/json-diff">JSON Diff</Link> for field-level change analysis and{' '}
-        <Link href="/json-compare">JSON Compare</Link> for broad side-by-side review.
+        Use this hub when you are deciding which tool or workflow is best for a specific debugging task. The goal is to
+        reduce tool switching by giving you a concrete decision framework.
       </p>
+
+      <h2>Quick Decision Framework</h2>
+      <ul>
+        <li>Need path-level change classification? Use <Link href="/json-diff">JSON Diff</Link>.</li>
+        <li>Need fast side-by-side visual review? Use <Link href="/json-compare">JSON Compare</Link>.</li>
+        <li>Need readability vs size tradeoffs? Compare <Link href="/json-formatter">Formatter</Link> vs <Link href="/json-minifier">Minifier</Link>.</li>
+      </ul>
+
+      <h2>What Makes a Good Comparison</h2>
+      <ol>
+        <li>Ensure both inputs are valid JSON.</li>
+        <li>Normalize formatting to eliminate whitespace noise.</li>
+        <li>Decide whether you need semantic diff (keys/values) or visual diff (layout).</li>
+      </ol>
+
+      <h2>Comparisons in This Hub</h2>
       <ul>
         {PAGES.map((page) => (
           <li key={page.href}>
-            <h2>
+            <h3>
               <Link href={page.href}>{page.title}</Link>
-            </h2>
+            </h3>
             <p>{page.desc}</p>
           </li>
         ))}
       </ul>
+
+      <h2>Example: Visual vs Structured Diff</h2>
+      <pre><code>{`// Structured diff result (JSON Diff)
++ user.profile.age
+- user.email
++ user.profile.timezone`}</code></pre>
+      <p>
+        Structured diffs produce actionable path-level changes. Visual diffs are faster for human review but less precise
+        when you need machine-readable change sets.
+      </p>
+
+      <h2>FAQ</h2>
+      <h3>Is JSON Diff the same as JSON Compare?</h3>
+      <p>No. JSON Diff focuses on change classification and path-level output. JSON Compare is optimized for quick visual review.</p>
+      <h3>Should I format before comparing?</h3>
+      <p>Yes. Formatting removes whitespace noise and makes changes easier to see.</p>
+      <h3>What if my payloads are large?</h3>
+      <p>Use targeted search and compare only the relevant slices or paths first.</p>
     </SEOPageLayout>
   );
 }

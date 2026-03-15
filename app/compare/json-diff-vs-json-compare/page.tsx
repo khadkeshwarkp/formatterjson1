@@ -34,6 +34,19 @@ export default function JsonDiffVsJsonComparePage() {
         <li>You need a lightweight manual comparison pass.</li>
       </ul>
 
+      <h2>Example Difference Output</h2>
+      <pre><code>{`// JSON Diff output (structured)
++ user.profile.age
+- user.email
+~ user.status`}</code></pre>
+
+      <h2>Workflow Guidance</h2>
+      <ol>
+        <li>Validate both payloads in <Link href="/json-validator">JSON Validator</Link>.</li>
+        <li>Format in <Link href="/json-formatter">JSON Formatter</Link> for readability.</li>
+        <li>Run <Link href="/json-diff">JSON Diff</Link> for precise change tracking.</li>
+      </ol>
+
       <p>
         Open <Link href="/json-diff">JSON Diff</Link> for structured workflows and{' '}
         <Link href="/json-compare">JSON Compare</Link> for fast visual review.

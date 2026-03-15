@@ -13,7 +13,7 @@ export default function CSharpJsonToolsPage() {
   return (
     <SEOPageLayout
       title="C# JSON Workflows"
-      intro="Use this guide when `System.Text.Json` parsing fails or payload shapes drift across environments in .NET services."
+      intro="Use this guide when System.Text.Json parsing fails or payload shapes drift across environments in .NET services."
       breadcrumb={[
         { label: 'Home', href: '/' },
         { label: 'Languages', href: '/languages' },
@@ -35,9 +35,24 @@ export default function CSharpJsonToolsPage() {
         <li>Missing required fields after upstream version updates.</li>
       </ul>
 
+      <h2>Minimal Snippet</h2>
+      <pre><code>{`using System.Text.Json;
+
+try {
+  var doc = JsonDocument.Parse(raw);
+} catch (JsonException ex) {
+  Console.WriteLine(ex.Message);
+}`}</code></pre>
+
       <p>
         Generate starter model definitions with <Link href="/json-to-csharp">JSON to C#</Link>, then harden with explicit validation.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>Why do null fields break my deserialization?</h3>
+      <p>Check for strict nullable annotations or custom converters that reject null values.</p>
+      <h3>Should I switch to Newtonsoft.Json?</h3>
+      <p>System.Text.Json is fine for most cases. Use Newtonsoft.Json only if you need specific converters.</p>
     </SEOPageLayout>
   );
 }

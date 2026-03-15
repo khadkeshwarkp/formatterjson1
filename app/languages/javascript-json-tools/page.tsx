@@ -13,7 +13,7 @@ export default function JavaScriptJsonToolsPage() {
   return (
     <SEOPageLayout
       title="JavaScript JSON Debugging Workflows"
-      intro="Use this when `response.json()` fails, payloads change across environments, or nested structures break rendering."
+      intro="Use this when response.json() fails, payloads change across environments, or nested structures break rendering."
       breadcrumb={[
         { label: 'Home', href: '/' },
         { label: 'Languages', href: '/languages' },
@@ -35,9 +35,22 @@ export default function JavaScriptJsonToolsPage() {
         <li>Type mismatch between expected interfaces and runtime data.</li>
       </ul>
 
+      <h2>Minimal Debug Snippet</h2>
+      <pre><code>{`const text = await response.text();
+console.log(text.slice(0, 200));
+const data = JSON.parse(text);`}</code></pre>
+
+      <h2>Typed Workflows</h2>
       <p>
-        For typed outputs, convert to <Link href="/json-to-typescript">TypeScript definitions</Link> and lock interface expectations.
+        For typed outputs, convert to <Link href="/json-to-typescript">TypeScript definitions</Link> and lock interface expectations
+        before updating downstream code.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>Why does response.json() throw in production?</h3>
+      <p>Most commonly due to auth redirects or CDN error pages returning HTML instead of JSON.</p>
+      <h3>How do I handle double-encoded JSON?</h3>
+      <p>Decode using <Link href="/string-to-json">String to JSON</Link>, then parse the result.</p>
     </SEOPageLayout>
   );
 }

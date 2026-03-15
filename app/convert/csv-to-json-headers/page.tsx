@@ -32,12 +32,25 @@ export default function CsvToJsonHeadersPage() {
         Convert numeric and boolean columns explicitly, then validate with <Link href="/json-validator">JSON Validator</Link> before integration.
       </p>
 
+      <h2>Example Mapping</h2>
+      <pre><code>{`// CSV header row
+E-mail, User ID , Is Active
+
+// Normalized JSON keys
+email,user_id,is_active`}</code></pre>
+
       <h2>Recommended Tool Chain</h2>
       <ol>
         <li><Link href="/csv-to-json">CSV to JSON</Link></li>
         <li><Link href="/json-formatter">JSON Formatter</Link></li>
         <li><Link href="/json-compare">JSON Compare</Link> against expected template</li>
       </ol>
+
+      <h2>FAQ</h2>
+      <h3>Why do columns disappear?</h3>
+      <p>Headers can be duplicated or trimmed into the same key. Normalize before conversion.</p>
+      <h3>Can I coerce types automatically?</h3>
+      <p>Most CSV converters output strings by default. Convert types after JSON generation.</p>
     </SEOPageLayout>
   );
 }

@@ -35,20 +35,52 @@ export default function LanguagesHubPage() {
       breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Languages' }]}
     >
       <p>
-        These guides complement converters like <Link href="/json-to-typescript">JSON to TypeScript</Link>,{' '}
-        <Link href="/json-to-python">JSON to Python</Link>, and{' '}
-        <Link href="/json-to-csharp">JSON to C#</Link>.
+        Language-specific JSON bugs often come from the same root causes, but the exceptions, stack traces, and fixes look
+        different. Use these guides to map common parse errors to the tool workflow that resolves them fastest.
       </p>
+
+      <h2>Common Failure Patterns Across Languages</h2>
+      <ul>
+        <li>Unexpected token errors from non-JSON responses.</li>
+        <li>Double-encoded JSON strings (escaped payloads).</li>
+        <li>Type mismatches between schema expectations and runtime values.</li>
+      </ul>
+
+      <h2>Guides in This Hub</h2>
       <ul>
         {PAGES.map((page) => (
           <li key={page.href}>
-            <h2>
+            <h3>
               <Link href={page.href}>{page.title}</Link>
-            </h2>
+            </h3>
             <p>{page.desc}</p>
           </li>
         ))}
       </ul>
+
+      <h2>Recommended Tool Stack</h2>
+      <ol>
+        <li><Link href="/json-validator">JSON Validator</Link> to surface syntax errors.</li>
+        <li><Link href="/json-formatter">JSON Formatter</Link> to inspect structure.</li>
+        <li><Link href="/json-diff">JSON Diff</Link> to compare payload changes.</li>
+        <li><Link href="/string-to-json">String to JSON</Link> for escaped payload decoding.</li>
+      </ol>
+
+      <h2>Code Generation Helpers</h2>
+      <p>
+        When you want typed models based on a real payload, use these converters to generate a safe starting point.
+      </p>
+      <ul>
+        <li><Link href="/json-to-typescript">JSON to TypeScript</Link></li>
+        <li><Link href="/json-to-python">JSON to Python</Link></li>
+        <li><Link href="/json-to-csharp">JSON to C#</Link></li>
+      </ul>
+
+      <h2>FAQ</h2>
+      <h3>Why does JSON.parse succeed in one environment but not another?</h3>
+      <p>Often the response content type or payload differs between environments. Compare actual payloads.</p>
+      <h3>Do I need to validate JSON if my code already parses it?</h3>
+      <p>Validation surfaces malformed inputs early, before runtime exceptions cascade into broken flows.</p>
     </SEOPageLayout>
   );
 }

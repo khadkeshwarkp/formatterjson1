@@ -35,9 +35,17 @@ export default function LargeJsonFilesPage() {
         <li>Use path-focused searches instead of broad regex where possible.</li>
       </ul>
 
+      <h2>Chunking Strategy</h2>
       <p>
-        If browser memory becomes a bottleneck, split payloads by top-level keys and validate in chunks.
+        If the browser struggles, split the payload by top-level keys and validate in chunks. You can also copy only the
+        relevant section into the validator to locate syntax errors quickly.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>How large is too large for a browser-based tool?</h3>
+      <p>It depends on memory. If the editor slows down or crashes, slice the payload into smaller parts.</p>
+      <h3>Should I minify large JSON before diffing?</h3>
+      <p>No. Formatting and structure visibility are more valuable for debugging than raw size.</p>
     </SEOPageLayout>
   );
 }

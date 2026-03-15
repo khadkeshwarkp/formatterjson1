@@ -36,9 +36,22 @@ export default function ApiJsonDebuggingPage() {
         <li>Field removal/addition breaking strict consumers.</li>
       </ul>
 
+      <h2>Operational Tips</h2>
+      <ul>
+        <li>Log the raw response before parsing in production.</li>
+        <li>Store a known-good payload for diff-based diagnostics.</li>
+        <li>Fail fast on invalid JSON instead of silently ignoring it.</li>
+      </ul>
+
       <p>
         For repeated incidents, publish this flow in team runbooks and CI validation checks.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>Should I validate JSON in production?</h3>
+      <p>Validate during debugging and in staging; in production, validate only on suspicious or high-risk inputs.</p>
+      <h3>What if my API returns JSON strings instead of objects?</h3>
+      <p>Decode with <Link href="/string-to-json">String to JSON</Link> and then parse as normal.</p>
     </SEOPageLayout>
   );
 }

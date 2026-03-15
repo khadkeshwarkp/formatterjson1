@@ -35,9 +35,22 @@ export default function PythonJsonToolsPage() {
         <li>Type coercion mismatches after conversion from CSV/XML.</li>
       </ul>
 
+      <h2>Practical Snippet</h2>
+      <pre><code>{`import json
+raw = response.text
+print(raw[:200])
+
+data = json.loads(raw)`}</code></pre>
+
       <p>
         Need generated models? Use <Link href="/json-to-python">JSON to Python</Link> for a quick starting structure.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>How do I handle BOM issues?</h3>
+      <p>Strip BOM before parsing or decode with utf-8-sig in Python.</p>
+      <h3>Why does parsing fail only on some inputs?</h3>
+      <p>Inconsistent API responses or empty rows in files are common sources.</p>
     </SEOPageLayout>
   );
 }

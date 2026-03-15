@@ -30,20 +30,42 @@ export default function UseCasesHubPage() {
       breadcrumb={[{ label: 'Home', href: '/' }, { label: 'Use Cases' }]}
     >
       <p>
-        Pair these workflows with <Link href="/json-validator">validation</Link>,{' '}
-        <Link href="/json-diff">diffing</Link>, and conversion tools under{' '}
-        <Link href="/convert">Convert</Link>.
+        Most JSON issues show up in specific workflows, not in isolation. These use cases map common team scenarios to a
+        stable tool chain so debugging steps are repeatable.
       </p>
+
+      <h2>Who This Is For</h2>
+      <ul>
+        <li>Backend engineers debugging API payload drift.</li>
+        <li>QA teams validating response contracts.</li>
+        <li>Data teams converting JSON to tabular formats.</li>
+      </ul>
+
+      <h2>Use Cases in This Hub</h2>
       <ul>
         {PAGES.map((page) => (
           <li key={page.href}>
-            <h2>
+            <h3>
               <Link href={page.href}>{page.title}</Link>
-            </h2>
+            </h3>
             <p>{page.desc}</p>
           </li>
         ))}
       </ul>
+
+      <h2>Recommended Workflow Pattern</h2>
+      <ol>
+        <li>Validate with <Link href="/json-validator">JSON Validator</Link>.</li>
+        <li>Format using <Link href="/json-formatter">JSON Formatter</Link>.</li>
+        <li>Compare changes via <Link href="/json-diff">JSON Diff</Link>.</li>
+        <li>Convert when needed under <Link href="/convert">Convert</Link>.</li>
+      </ol>
+
+      <h2>FAQ</h2>
+      <h3>Do these workflows apply to data pipelines?</h3>
+      <p>Yes. The same validate → format → diff pattern applies to ETL and data ingestion checks.</p>
+      <h3>Should teams standardize on one tool stack?</h3>
+      <p>Yes. Consistent tooling reduces time lost switching between inconsistent editors or formats.</p>
     </SEOPageLayout>
   );
 }

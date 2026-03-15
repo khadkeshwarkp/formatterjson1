@@ -3,17 +3,17 @@ import Link from 'next/link';
 import SEOPageLayout from '@/components/seo/SEOPageLayout';
 
 export const metadata: Metadata = {
-  title: 'JSONDecodeError Expecting Value Fix',
+  title: 'JSONDecodeError: Expecting value Fix',
   description:
     'Solve Python JSONDecodeError: Expecting value by handling empty responses, BOM, malformed JSON, and quote errors.',
   alternates: { canonical: 'https://formatterjson.org/errors/jsondecodeerror-expecting-value' },
 };
 
-export default function JsonDecodeErrorExpectingValuePage() {
+export default function JsonDecodeExpectingValuePage() {
   return (
     <SEOPageLayout
-      title="Python JSONDecodeError: Expecting value"
-      intro="This Python error usually indicates empty input, non-JSON text, or broken JSON syntax. The key is to validate raw input before decode."
+      title="JSONDecodeError: Expecting value"
+      intro="This Python error usually means you are parsing an empty string or non-JSON content. Use this checklist to isolate the real source quickly."
       breadcrumb={[
         { label: 'Home', href: '/' },
         { label: 'JSON Error Fixes', href: '/errors' },
@@ -22,24 +22,38 @@ export default function JsonDecodeErrorExpectingValuePage() {
     >
       <h2>Typical Causes</h2>
       <ul>
-        <li>Empty string passed to <code>json.loads</code>.</li>
-        <li>API returned HTML/plain text, not JSON.</li>
-        <li>Single quotes or trailing commas.</li>
-        <li>UTF-8 BOM at start of file.</li>
+        <li>Empty response body or file read returned an empty string.</li>
+        <li>HTML or text response instead of JSON.</li>
+        <li>BOM or invisible control characters at the start.</li>
+        <li>JSON string was double-encoded and not decoded first.</li>
       </ul>
 
-      <h2>Debug Workflow</h2>
+      <h2>Debug Checklist</h2>
       <ol>
-        <li>Log raw payload length and first characters.</li>
-        <li>Validate content in <Link href="/json-validator">JSON Validator</Link>.</li>
-        <li>Normalize structure with <Link href="/json-formatter">JSON Formatter</Link>.</li>
-        <li>Use <Link href="/languages/python-json-tools">Python JSON workflow guide</Link> for code-level handling.</li>
+        <li>Print the raw string length and first 200 characters.</li>
+        <li>Validate using <Link href="/json-validator">JSON Validator</Link>.</li>
+        <li>If it is escaped, decode with <Link href="/string-to-json">String to JSON</Link>.</li>
+        <li>Format with <Link href="/json-formatter">JSON Formatter</Link>.</li>
       </ol>
 
-      <h2>Related Tools</h2>
+      <h2>Python Example</h2>
+      <pre><code>{`import json
+raw = response.text
+print(len(raw), raw[:200])
+
+data = json.loads(raw)`}</code></pre>
+
+      <h2>Recovery Strategy</h2>
       <p>
-        Use <Link href="/json-parser">JSON Parser</Link> for parse checks and <Link href="/json-diff">JSON Diff</Link> when comparing failing vs working payloads.
+        Once the payload is valid JSON, compare against a known-good response using <Link href="/json-compare">JSON Compare</Link>
+        to find drift in shape or types.
       </p>
+
+      <h2>FAQ</h2>
+      <h3>Why does this only happen on some records?</h3>
+      <p>Some rows may be empty or contain stringified JSON. Check for null or empty inputs before parsing.</p>
+      <h3>Should I ignore the error and return null?</h3>
+      <p>Only if the upstream system guarantees optional data. Otherwise, fix the source payload.</p>
     </SEOPageLayout>
   );
 }

@@ -3,9 +3,9 @@ import Link from 'next/link';
 import SEOPageLayout from '@/components/seo/SEOPageLayout';
 
 export const metadata: Metadata = {
-  title: 'Trailing Comma JSON Error Guide',
+  title: 'Trailing Comma JSON Error Fix',
   description:
-    'Fix trailing comma JSON errors in objects and arrays with reliable validation and formatting steps for APIs and config files.',
+    'Fix trailing comma errors in JSON by removing invalid commas and validating structure across objects and arrays.',
   alternates: { canonical: 'https://formatterjson.org/errors/trailing-comma-json' },
 };
 
@@ -13,32 +13,45 @@ export default function TrailingCommaJsonPage() {
   return (
     <SEOPageLayout
       title="Trailing Comma JSON Error"
-      intro="Trailing commas are valid in many language literals but invalid in strict JSON. They often break CI config checks and API payload parsing."
+      intro="JSON does not allow trailing commas. This page shows how to detect them quickly and fix payloads from APIs, config files, and hand-edited JSON."
       breadcrumb={[
         { label: 'Home', href: '/' },
         { label: 'JSON Error Fixes', href: '/errors' },
         { label: 'Trailing Comma JSON Error' },
       ]}
     >
-      <h2>Where It Happens</h2>
+      <h2>What a Trailing Comma Looks Like</h2>
+      <pre><code>{`{
+  "name": "Ava",
+  "age": 30,
+}`}</code></pre>
+      <p>The comma after <code>30</code> is invalid in JSON.</p>
+
+      <h2>Why It Happens</h2>
       <ul>
-        <li>After the last property in an object.</li>
-        <li>After the last item in an array.</li>
-        <li>During manual edits or copied snippets from JS/TS files.</li>
+        <li>Manual edits in configs or sample payloads.</li>
+        <li>Copy/paste from JavaScript object literals (which allow trailing commas).</li>
+        <li>Templating logic that always appends commas.</li>
       </ul>
 
-      <h2>Fix Pattern</h2>
+      <h2>Fix Workflow</h2>
       <ol>
-        <li>Paste into <Link href="/json-validator">JSON Validator</Link>.</li>
-        <li>Remove final comma before <code>{'}'}</code> or <code>]</code>.</li>
-        <li>Run <Link href="/json-formatter">Formatter</Link> for stable indentation.</li>
-        <li>For version changes, verify with <Link href="/json-compare">JSON Compare</Link>.</li>
+        <li>Validate in <Link href="/json-validator">JSON Validator</Link> to locate the error position.</li>
+        <li>Format with <Link href="/json-formatter">JSON Formatter</Link> to expose the line break.</li>
+        <li>Remove trailing commas and re-validate.</li>
       </ol>
 
-      <h2>Prevention Tip</h2>
-      <p>
-        Add pre-commit validation for config repositories. Use formatter + validator together for every payload copied between environments.
-      </p>
+      <h2>Safe Example</h2>
+      <pre><code>{`{
+  "name": "Ava",
+  "age": 30
+}`}</code></pre>
+
+      <h2>FAQ</h2>
+      <h3>Why does JavaScript accept trailing commas but JSON does not?</h3>
+      <p>JSON is a strict data interchange format; it does not allow trailing commas by specification.</p>
+      <h3>Can the formatter auto-fix this?</h3>
+      <p>No. The formatter requires valid JSON. Fix commas first, then format.</p>
     </SEOPageLayout>
   );
 }
