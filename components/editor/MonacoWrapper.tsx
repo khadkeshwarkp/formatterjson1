@@ -260,7 +260,8 @@ export default function MonacoWrapper({ toolId, language = 'json', onChange, var
       const withinPanel = !!(target && rootRef.current?.contains(target));
       const typingTarget =
         !!target &&
-        (target.closest('input, textarea, select') !== null || target.isContentEditable);
+        (target.closest('input, textarea, select, [contenteditable=\"true\"], .monaco-editor, .cm-editor') !== null ||
+          target.isContentEditable);
 
       if (mod && event.key.toLowerCase() === 'f' && (focused || withinPanel)) {
         event.preventDefault();

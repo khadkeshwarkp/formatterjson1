@@ -479,7 +479,8 @@ export default function UnifiedEditor({
       const withinPanel = !!(target && rootRef.current?.contains(target));
       const typingTarget =
         !!target &&
-        (target.closest('input, textarea, select') !== null || target.isContentEditable);
+        (target.closest('input, textarea, select, [contenteditable=\"true\"], .jse-main, .cm-editor') !== null ||
+          target.isContentEditable);
 
       if (mod && event.key.toLowerCase() === 'f' && (focused || withinPanel)) {
         event.preventDefault();
@@ -624,7 +625,11 @@ export default function UnifiedEditor({
         >
           {placeholder}
         </div>
-        <div ref={hostRef} className="h-full w-full dt-unified-editor-host" />
+        <div
+          ref={hostRef}
+          className="h-full w-full dt-unified-editor-host"
+          onMouseDown={() => editorRef.current?.focus?.()}
+        />
       </div>
     </div>
   );

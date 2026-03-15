@@ -45,7 +45,7 @@ export default function PlatformHomePage() {
     url: SITE_URL,
     potentialAction: {
       '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/json-formatter?q={search_term_string}` },
+      target: { '@type': 'EntryPoint', urlTemplate: `${SITE_URL}/search?q={search_term_string}` },
       'query-input': 'required name=search_term_string',
     },
   };
@@ -69,7 +69,7 @@ export default function PlatformHomePage() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     const q = search.trim();
-    if (q) router.push(`/json-formatter?q=${encodeURIComponent(q)}`);
+    if (q) router.push(`/search/?q=${encodeURIComponent(q)}`);
   };
 
   return (
@@ -106,9 +106,10 @@ export default function PlatformHomePage() {
                 Read Blog
               </Link>
             </div>
-            <form onSubmit={handleSearch} className="max-w-md mx-auto">
+            <form onSubmit={handleSearch} action="/search/" method="get" className="max-w-md mx-auto">
               <input
-                type="text"
+                type="search"
+                name="q"
                 placeholder="Search tools…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}

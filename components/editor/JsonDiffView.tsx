@@ -195,6 +195,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
   const lastToolIdRef = useRef(toolId);
   const originalSeedRef = useRef(input);
   const modifiedSeedRef = useRef(input2);
+  const disposedRef = useRef(false);
 
   if (lastToolIdRef.current !== toolId) {
     lastToolIdRef.current = toolId;
@@ -558,6 +559,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
 
   const onMount = useCallback(
     (editor: unknown) => {
+      disposedRef.current = false;
       const ed = editor as {
         getLineChanges: () => unknown[];
         getModifiedEditor: () => {
@@ -591,10 +593,12 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
       ed.getModifiedEditor().onDidBlurEditorText?.(() => setRightFocused(false));
 
       ed.getOriginalEditor().onDidChangeModelContent(() => {
+        if (disposedRef.current) return;
         const next = ed.getOriginalEditor().getValue();
         setInput(toolId, next);
       });
       ed.getModifiedEditor().onDidChangeModelContent(() => {
+        if (disposedRef.current) return;
         const next = ed.getModifiedEditor().getValue();
         setInput2(toolId, next);
       });
@@ -608,6 +612,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
 
   useEffect(() => {
     const editor = diffEditorRef.current?.getOriginalEditor();
+    if (disposedRef.current) return;
     if (!editor?.getValue || !editor.setValue) return;
     const current = editor.getValue();
     if (current === input) return;
@@ -620,6 +625,7 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
 
   useEffect(() => {
     const editor = diffEditorRef.current?.getModifiedEditor();
+    if (disposedRef.current) return;
     if (!editor?.getValue || !editor.setValue) return;
     const current = editor.getValue();
     if (current === input2) return;
@@ -632,6 +638,8 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
 
   useEffect(() => {
     return () => {
+      disposedRef.current = true;
+      diffEditorRef.current = null;
       originalDecorationsRef.current?.clear();
       modifiedDecorationsRef.current?.clear();
     };
@@ -866,6 +874,10 @@ export default function JsonDiffView({ toolId }: JsonDiffViewProps) {
               height="100%"
               original={originalSeedRef.current}
               modified={modifiedSeedRef.current}
+              originalModelPath={`inmemory://diff/${toolId}-left.json`}
+              modifiedModelPath={`inmemory://diff/${toolId}-right.json`}
+              keepCurrentOriginalModel
+              keepCurrentModifiedModel
               language="json"
               beforeMount={defineWorkspaceMonacoThemes}
               onMount={onMount}

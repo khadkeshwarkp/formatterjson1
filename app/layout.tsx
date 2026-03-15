@@ -1,9 +1,8 @@
 import type { Metadata } from 'next';
-import Script from 'next/script';
 import '@/styles/globals.css';
 import { ThemeProvider } from '@/components/layout/ThemeProvider';
 import ConsentBanner from '@/components/layout/ConsentBanner';
-import { GA_TRACKING_ID } from '@/lib/gtag';
+import ConsentScripts from '@/components/layout/ConsentScripts';
 
 const SITE_URL = 'https://formatterjson.org';
 
@@ -94,44 +93,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           }}
         />
 
-        {/* Google Analytics */}
-        <Script
-          src={`https://www.googletagmanager.com/gtag/js?id=${GA_TRACKING_ID}`}
-          strategy="afterInteractive"
-        />
-        <Script
-          id="gtag-init"
-          strategy="afterInteractive"
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', '${GA_TRACKING_ID}', {
-                page_path: window.location.pathname,
-              });
-            `,
-          }}
-        />
-
-        {/* Google AdSense */}
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8049153058740766"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-
-        {/* Ahrefs Analytics */}
-        <Script
-          src="https://analytics.ahrefs.com/analytics.js"
-          data-key="eLIwKZ7cKfJi8ZaPw9TGEg"
-          strategy="afterInteractive"
-        />
       </head>
       <body>
         <ThemeProvider>
           {children}
+          <ConsentScripts />
           <ConsentBanner />
         </ThemeProvider>
       </body>

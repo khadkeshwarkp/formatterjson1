@@ -84,7 +84,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/blog/best-practices-validating-json-online',
   ];
 
-  const seoHubRoutes = ['/errors', '/languages', '/compare', '/use-cases', '/convert'];
+  const seoHubRoutes = ['/errors', '/languages', '/compare', '/use-cases', '/convert', '/search', '/sitemap'];
   const seoChildRoutes = [
     '/errors/unexpected-token-json',
     '/errors/trailing-comma-json',

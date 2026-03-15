@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import Footer from '@/components/layout/Footer';
 import { SEO_HUBS } from '@/lib/seo-hubs';
+import SiteSearchBar from '@/components/seo/SiteSearchBar';
+import AuthorCard from '@/components/seo/AuthorCard';
 
 interface SEOPageLayoutProps {
   title: string;
@@ -13,15 +15,19 @@ export default function SEOPageLayout({ title, intro, breadcrumb, children }: SE
   return (
     <div className="h-screen overflow-y-auto overflow-x-hidden bg-dt-bg text-dt-text">
       <header className="border-b border-dt-border bg-dt-card/80 backdrop-blur-dt-sm sticky top-0 z-20">
-        <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
           <Link href="/" className="text-lg font-semibold text-dt-text hover:text-dt-accent transition-colors">
             formatterjson.org
           </Link>
-          <nav className="flex items-center gap-4 text-sm text-dt-text-muted">
-            <Link href="/blog" className="hover:text-dt-text transition-colors">Blog</Link>
-            <Link href="/errors" className="hover:text-dt-text transition-colors">Errors</Link>
-            <Link href="/convert" className="hover:text-dt-text transition-colors">Convert</Link>
-          </nav>
+          <div className="flex items-center gap-4 flex-wrap">
+            <nav className="flex items-center gap-4 text-sm text-dt-text-muted">
+              <Link href="/blog" className="hover:text-dt-text transition-colors">Blog</Link>
+              <Link href="/errors" className="hover:text-dt-text transition-colors">Errors</Link>
+              <Link href="/convert" className="hover:text-dt-text transition-colors">Convert</Link>
+              <Link href="/search/" className="hover:text-dt-text transition-colors">Search</Link>
+            </nav>
+            <SiteSearchBar />
+          </div>
         </div>
       </header>
 
@@ -45,6 +51,7 @@ export default function SEOPageLayout({ title, intro, breadcrumb, children }: SE
         <p className="text-lg text-dt-text-muted mb-8 max-w-4xl">{intro}</p>
 
         <article className="blog-content max-w-none">{children}</article>
+        <AuthorCard updated="March 16, 2026" />
 
         <section className="mt-10 border-t border-dt-border pt-6">
           <h2 className="text-xl font-semibold mb-4">Explore More SEO Hubs</h2>

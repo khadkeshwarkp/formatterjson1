@@ -381,6 +381,11 @@ a.text-dt-accent {
   min-height: 0;
 }
 
+.dt-unified-editor .jse-main,
+.dt-unified-editor .cm-editor {
+  pointer-events: auto;
+}
+
 .dt-unified-editor .jse-main {
   border: 0;
   border-radius: 0;

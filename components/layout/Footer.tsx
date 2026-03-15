@@ -62,6 +62,16 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/search/" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  Search
+                </Link>
+              </li>
+              <li>
+                <Link href="/sitemap" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  HTML Sitemap
+                </Link>
+              </li>
+              <li>
                 <Link href="/string-to-json" className="text-dt-text-muted hover:text-dt-text transition-colors">
                   String to JSON
                 </Link>

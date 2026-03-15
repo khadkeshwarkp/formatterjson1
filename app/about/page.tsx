@@ -21,6 +21,13 @@ export default function AboutPage() {
         migration checks, and format conversions.
       </p>
 
+      <h2 className="text-xl font-semibold text-dt-text mt-6">Team & Experience</h2>
+      <ul className="list-disc list-inside space-y-2">
+        <li>Developer-first focus with daily use of JSON tooling in real API and data workflows.</li>
+        <li>Emphasis on clear UX, predictable output, and debugging-focused features.</li>
+        <li>Maintained as a fast, static, privacy-first platform with consistent UI across tools.</li>
+      </ul>
+
       <h2 className="text-xl font-semibold text-dt-text mt-6">What’s on the Platform</h2>
       <ul className="list-disc list-inside space-y-2">
         <li><strong>JSON Formatter / Validator / Minifier</strong> for daily API and config workflows.</li>
