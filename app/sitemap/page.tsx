@@ -61,6 +61,15 @@ export default function HtmlSitemapPage() {
         ))}
       </ul>
 
+      <h2 className="mt-6">Resources</h2>
+      <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <li>
+          <Link href="/json-dummy-data" className="text-dt-accent hover:underline">
+            JSON Dummy Data (64KB–5MB)
+          </Link>
+        </li>
+      </ul>
+
       <h2 className="mt-6">Company & Legal</h2>
       <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <li><Link href="/about" className="text-dt-accent hover:underline">About</Link></li>

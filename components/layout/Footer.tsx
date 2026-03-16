@@ -77,6 +77,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/json-dummy-data" className="text-dt-text-muted hover:text-dt-text transition-colors">
+                  JSON Dummy Data
+                </Link>
+              </li>
+              <li>
                 <Link href="/errors" className="text-dt-text-muted hover:text-dt-text transition-colors">
                   Error Fixes
                 </Link>

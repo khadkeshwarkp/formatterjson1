@@ -64,4 +64,10 @@ export const SEARCH_INDEX: SearchItem[] = [
     description: 'Full list of pages for fast navigation.',
     category: 'Navigation',
   },
+  {
+    title: 'JSON Dummy Data (64KB–5MB)',
+    href: '/json-dummy-data',
+    description: 'Download formatted, minified, and invalid JSON files for testing.',
+    category: 'Resources',
+  },
 ];

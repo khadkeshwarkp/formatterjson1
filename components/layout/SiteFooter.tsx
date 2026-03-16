@@ -9,6 +9,7 @@ export default function SiteFooter() {
         <Link href="/contact" className="hover:text-dt-accent transition-colors">Contact</Link>
         <Link href="/blog" className="hover:text-dt-accent transition-colors">Blog</Link>
         <Link href="/search/" className="hover:text-dt-accent transition-colors">Search</Link>
+        <Link href="/json-dummy-data" className="hover:text-dt-accent transition-colors">JSON Dummy Data</Link>
         <Link href="/sitemap" className="hover:text-dt-accent transition-colors">Sitemap</Link>
         <Link href="/string-to-json" className="hover:text-dt-accent transition-colors">String to JSON</Link>
         <Link href="/errors" className="hover:text-dt-accent transition-colors">Errors</Link>
